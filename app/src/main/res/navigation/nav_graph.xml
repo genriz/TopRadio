@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@+id/splash">
+    <fragment
+        android:name="com.app.topradio.main.SplashFragment"
+        android:id="@+id/splash">
+        <action android:id="@+id/toHome"
+            app:destination="@id/menu_home"
+            app:popUpTo="@id/splash"
+            app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.home.HomeFragment"
+        android:id="@+id/menu_home">
+        <action android:id="@+id/toHome"
+            app:destination="@id/menu_home"
+            app:popUpTo="@id/menu_home"/>
+    </fragment>
+</navigation>

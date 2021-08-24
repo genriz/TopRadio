@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group1"
+        android:checkableBehavior="single">
+        <item android:icon="@drawable/ic_menu_home"
+            android:id="@+id/menu_home"
+            android:title="@string/menu_home"/>
+        <item android:icon="@drawable/ic_menu_genres"
+            android:id="@+id/menu_genres"
+            android:title="@string/menu_genres"/>
+        <item android:icon="@drawable/ic_menu_cities"
+            android:id="@+id/menu_cities"
+            android:title="@string/menu_cities"/>
+        <item android:icon="@drawable/ic_menu_viewed"
+            android:id="@+id/menu_viewed"
+            android:title="@string/menu_viewed"/>
+    </group>
+</menu>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Top Radio</string>
+    <string name="menu_home">Все радиостанции</string>
+    <string name="menu_genres">Жанры</string>
+    <string name="menu_cities">Города</string>
+    <string name="menu_viewed">Просмотренные</string>
+    <string name="search">Поиск…</string>
+</resources>
