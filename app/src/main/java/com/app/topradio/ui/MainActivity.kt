@@ -1,4 +1,4 @@
-package com.app.topradio.main
+package com.app.topradio.ui
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -22,9 +23,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.app.topradio.AppData
+import com.app.topradio.util.AppData
 import com.app.topradio.R
 import com.app.topradio.databinding.ActivityMainBinding
+import com.app.topradio.model.MainViewModel
+import com.app.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 
@@ -138,6 +141,8 @@ class MainActivity : AppCompatActivity() {
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                 .createNotificationChannel(channel)
         }
+
+        Log.v("DASD", "$bound")
     }
 
     @SuppressLint("ClickableViewAccessibility")

@@ -3,7 +3,7 @@
     <data>
         <variable
             name="adapter"
-            type="com.app.topradio.home.StationsListAdapter"/>
+            type="com.app.topradio.ui.adapters.StationsListAdapter"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:app="http://schemas.android.com/apk/res-auto"

@@ -1,11 +1,10 @@
-package com.app.topradio.main
+package com.app.topradio.model
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.app.topradio.AppData
+import com.app.topradio.util.AppData
 import com.app.topradio.api.ApiRadio
-import com.app.topradio.model.Station
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

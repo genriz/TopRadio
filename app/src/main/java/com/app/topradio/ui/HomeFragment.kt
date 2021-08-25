@@ -1,4 +1,4 @@
-package com.app.topradio.favorites
+package com.app.topradio.ui
 
 import android.app.Activity
 import android.os.Bundle
@@ -8,23 +8,20 @@ import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.app.topradio.R
-import com.app.topradio.databinding.FragmentFavoritesBinding
-import com.app.topradio.home.StationsListAdapter
-import com.app.topradio.main.MainActivity
+import com.app.topradio.databinding.FragmentHomeBinding
+import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
 
-class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
+class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
 
-    private lateinit var binding: FragmentFavoritesBinding
+    private lateinit var binding: FragmentHomeBinding
     private lateinit var searchView: SearchView
-    private val favorites = ArrayList<Station>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_favorites, container, false)
+        savedInstanceState: Bundle?): View {
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
         binding.adapter = StationsListAdapter(this)
         binding.lifecycleOwner = this
         return binding.root
@@ -37,11 +34,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                favorites.clear()
-                it.forEach { station ->
-                    if (station.isFavorite) favorites.add(station)
-                }
-                binding.adapter!!.submitList(favorites) {
+                binding.adapter!!.submitList(it) {
                     binding.stationsList.scrollToPosition(0)
                 }
             }
@@ -71,9 +64,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
-        binding.adapter!!.notifyItemRemoved(position)
-        (activity as MainActivity).viewModel._stations.value =
-            (activity as MainActivity).viewModel.stations.value
+        binding.adapter!!.notifyItemChanged(position)
         if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
             (activity as MainActivity).viewModel.station.value =
                 (activity as MainActivity).viewModel.station.value
@@ -89,7 +80,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.favorites_menu, menu)
+        inflater.inflate(R.menu.main_menu, menu)
         searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
         searchView.apply {
             maxWidth = Integer.MAX_VALUE
@@ -100,9 +91,9 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
                 }
                 override fun onQueryTextChange(newText: String): Boolean {
                     if (newText.length>2)
-                        (activity as MainActivity).viewModel.searchFavoritesStations(newText)
-                    else if (newText.isEmpty())
-                        (activity as MainActivity).viewModel.clearSearch()
+                        (activity as MainActivity).viewModel.searchStations(newText)
+                    else if (newText.isEmpty()) (activity as MainActivity)
+                        .viewModel.clearSearch()
                     return true
                 }
 
@@ -116,7 +107,8 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity).onBackPressed()
+        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
+            .navController.navigate(R.id.favorites)
         return super.onOptionsItemSelected(item)
     }
 }

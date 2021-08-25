@@ -1,4 +1,4 @@
-package com.app.topradio.main
+package com.app.topradio.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater

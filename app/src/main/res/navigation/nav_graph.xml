@@ -5,7 +5,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@+id/splash">
     <fragment
-        android:name="com.app.topradio.main.SplashFragment"
+        android:name="com.app.topradio.ui.SplashFragment"
         android:id="@+id/splash">
         <action android:id="@+id/toHome"
             app:destination="@id/menu_home"
@@ -13,19 +13,38 @@
             app:popUpToInclusive="true"/>
     </fragment>
     <fragment
-        android:name="com.app.topradio.home.HomeFragment"
-        android:id="@+id/menu_home"
-        android:label="@string/app_name">
+        android:name="com.app.topradio.ui.HomeFragment"
+        android:id="@+id/menu_home">
         <action android:id="@+id/toHome"
             app:destination="@id/menu_home"
             app:popUpTo="@id/menu_home"/>
     </fragment>
     <fragment
-        android:name="com.app.topradio.favorites.FavoritesFragment"
-        android:id="@+id/favorites"
-        android:label="@string/favorites">
+        android:name="com.app.topradio.ui.FavoritesFragment"
+        android:id="@+id/favorites">
         <action android:id="@+id/toHome"
             app:destination="@id/favorites"
             app:popUpTo="@id/favorites"/>
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.GenresFragment"
+        android:id="@+id/menu_genres">
+        <action android:id="@+id/toHome"
+            app:destination="@id/menu_genres"
+            app:popUpTo="@id/menu_genres"/>
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.CitiesFragment"
+        android:id="@+id/menu_cities">
+        <action android:id="@+id/toHome"
+            app:destination="@id/menu_cities"
+            app:popUpTo="@id/menu_cities"/>
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.ViewedFragment"
+        android:id="@+id/menu_viewed">
+        <action android:id="@+id/toHome"
+            app:destination="@id/menu_viewed"
+            app:popUpTo="@id/menu_viewed"/>
     </fragment>
 </navigation>

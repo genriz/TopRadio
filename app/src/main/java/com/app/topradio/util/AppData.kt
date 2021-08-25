@@ -1,4 +1,4 @@
-package com.app.topradio
+package com.app.topradio.util
 
 import android.app.Activity
 import android.content.Context

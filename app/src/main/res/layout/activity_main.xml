@@ -4,7 +4,7 @@
     <data>
         <variable
             name="viewModel"
-            type="com.app.topradio.main.MainViewModel"/>
+            type="com.app.topradio.model.MainViewModel"/>
         <import type="android.view.View"/>
     </data>
     <androidx.drawerlayout.widget.DrawerLayout

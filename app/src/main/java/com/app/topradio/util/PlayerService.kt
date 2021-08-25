@@ -1,4 +1,4 @@
-package com.app.topradio.main
+package com.app.topradio.util
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.topradio.R
 import com.app.topradio.model.Station
+import com.app.topradio.ui.MainActivity
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer

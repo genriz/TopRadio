@@ -1,4 +1,4 @@
-package com.app.topradio.home
+package com.app.topradio.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
