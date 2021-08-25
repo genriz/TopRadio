@@ -14,9 +14,18 @@
     </fragment>
     <fragment
         android:name="com.app.topradio.home.HomeFragment"
-        android:id="@+id/menu_home">
+        android:id="@+id/menu_home"
+        android:label="@string/app_name">
         <action android:id="@+id/toHome"
             app:destination="@id/menu_home"
             app:popUpTo="@id/menu_home"/>
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.favorites.FavoritesFragment"
+        android:id="@+id/favorites"
+        android:label="@string/favorites">
+        <action android:id="@+id/toHome"
+            app:destination="@id/favorites"
+            app:popUpTo="@id/favorites"/>
     </fragment>
 </navigation>

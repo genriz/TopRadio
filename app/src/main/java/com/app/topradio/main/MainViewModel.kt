@@ -1,6 +1,5 @@
 package com.app.topradio.main
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,14 +9,15 @@ import com.app.topradio.model.Station
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
     private val _stations = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = _stations
     val station = MutableLiveData<Station>().apply { value = Station() }
     private val allStations = ArrayList<Station>()
+    var favorites = HashSet<String>()
 
     fun getStations(){
         CoroutineScope(Dispatchers.IO).launch {
@@ -25,6 +25,10 @@ class MainViewModel: ViewModel() {
             if (response.isSuccessful){
                 allStations.clear()
                 allStations.addAll(response.body()!!)
+                allStations.forEach {
+                    if (favorites.contains(it.id.toString())) it.isFavorite = true
+                }
+                allStations.sortBy { it.position }
                 _stations.postValue(allStations)
             }
         }
@@ -36,6 +40,17 @@ class MainViewModel: ViewModel() {
             if (it.name.lowercase().contains(query.lowercase()))
                 stations.add(it)
         }
+        stations.sortBy { it.position }
+        _stations.postValue(stations)
+    }
+
+    fun searchFavoritesStations (query: String){
+        val stations = ArrayList<Station>()
+        allStations.forEach {
+            if (it.isFavorite&&it.name.lowercase().contains(query.lowercase()))
+                stations.add(it)
+        }
+        stations.sortBy { it.position }
         _stations.postValue(stations)
     }
 

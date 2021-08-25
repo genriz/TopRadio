@@ -36,6 +36,12 @@ fun setFavorite (view: ImageView, favorite: Boolean){
         .placeholder(R.drawable.ic_favorite_off).into(view)
 }
 
+@BindingAdapter("setFavoritePlayer")
+fun setFavoritePlayer (view: ImageView, favorite: Boolean){
+    if (favorite) Glide.with(view).load(R.drawable.ic_favorite_on).into(view)
+    else Glide.with(view).load(R.drawable.ic_favorite_off_player).into(view)
+}
+
 @BindingAdapter("setPlayingIcon")
 fun setPlayingIcon (view: ImageView, isPlaying: Boolean){
     if (isPlaying) Glide.with(view).load(R.drawable.ic_pause)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="viewModel"
@@ -8,7 +9,6 @@
     </data>
     <androidx.drawerlayout.widget.DrawerLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/drawerLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -21,17 +21,18 @@
                 android:paddingBottom="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:theme="@style/ToolbarTheme">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-                    <ImageView
-                        android:layout_width="113dp"
-                        android:layout_height="21dp"
-                        android:src="@drawable/logo3"/>
-                </LinearLayout>
+                android:theme="@style/ToolbarTheme"
+                app:titleTextColor="@color/white">
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:gravity="center_vertical">-->
+<!--                    <ImageView-->
+<!--                        android:layout_width="113dp"-->
+<!--                        android:layout_height="21dp"-->
+<!--                        android:src="@drawable/logo3"/>-->
+<!--                </LinearLayout>-->
             </com.google.android.material.appbar.MaterialToolbar>
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:layout_width="match_parent"
@@ -53,7 +54,7 @@
                     android:background="@color/small_player_back"
                     app:behavior_hideable="true"
                     app:behavior_peekHeight="0dp"
-                    app:layout_behavior="@string/bottom_sheet_behavior">
+                    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="0dp"
@@ -81,7 +82,7 @@
                         android:layout_height="0dp"
                         app:layout_constraintStart_toEndOf="@id/iconCard"
                         android:layout_marginStart="15dp"
-                        app:layout_constraintEnd_toStartOf="@id/playPause"
+                        app:layout_constraintEnd_toStartOf="@id/favoriteIcon"
                         android:layout_marginEnd="12dp"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -115,17 +116,40 @@
                     </LinearLayout>
 
                     <ImageView
+                        android:id="@+id/favoriteIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_favorite_off_player"
+                        app:layout_constraintTop_toTopOf="@id/playPause"
+                        app:layout_constraintBottom_toBottomOf="@id/playPause"
+                        app:layout_constraintEnd_toStartOf="@id/playPause"
+                        android:layout_marginEnd="19dp"
+                        setFavoritePlayer="@{viewModel.station.favorite}"/>
+
+                    <ProgressBar
+                        android:id="@+id/progressPLayer"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintDimensionRatio="1:1"
+                        android:indeterminateTint="@color/back_main"
+                        android:visibility="gone"/>
+
+                    <ImageView
                         android:id="@+id/playPause"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
+                        android:src="@drawable/ic_play"
                         app:layout_constraintWidth_percent="0.15"
                         app:layout_constraintDimensionRatio="1:1"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         setPlayingIcon="@{viewModel.station.isPlaying}"
-                        android:layout_marginEnd="12dp"
-                        android:layout_marginTop="15dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginTop="16dp"
                         android:layout_marginBottom="17dp"/>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>

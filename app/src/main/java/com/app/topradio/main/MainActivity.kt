@@ -1,5 +1,6 @@
 package com.app.topradio.main
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,10 +10,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.view.Menu
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
@@ -22,12 +21,12 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.app.topradio.AppData
 import com.app.topradio.R
 import com.app.topradio.databinding.ActivityMainBinding
-import com.app.topradio.model.Station
 import com.google.android.exoplayer2.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.navigation.NavigationView
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,7 +35,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var searchView: SearchView
     private lateinit var service: PlayerService
     private lateinit var player: SimpleExoPlayer
     private var bound = false
@@ -47,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             service = binder.service
             player = binder.player
             bound = true
-            showPlayer(binder.station)
+            showPlayer()
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
@@ -61,6 +59,11 @@ class MainActivity : AppCompatActivity() {
                 viewModel.station.value!!.isPlaying =
                     intent.getBooleanExtra("isPlaying", false)
                 viewModel.station.value = viewModel.station.value
+                if (!viewModel.station.value!!.isPlaying){
+                    if (player.playbackState==ExoPlayer.STATE_BUFFERING){
+                        binding.progressPLayer.visibility = View.VISIBLE
+                    } else binding.progressPLayer.visibility = View.GONE
+                } else binding.progressPLayer.visibility = View.GONE
             }
             if (intent?.action == "player_track_name") {
                 viewModel.station.value!!.track = intent.getStringExtra("track_name")?:""
@@ -98,16 +101,30 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.drawerLayout)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        NavigationUI.setupWithNavController(findViewById<NavigationView>(R.id.nav_view),
-            navController)
+        binding.navView.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id){
+                R.id.menu_home -> {
+                    supportActionBar!!.title = ""
+                    supportActionBar!!.setIcon(R.drawable.logo_toolbar)
+                }
+                R.id.favorites -> {
+                    supportActionBar!!.title = getString(R.string.favorites)
+                    supportActionBar!!.setIcon(null)
+                }
+            }
+        }
 
         viewModel.stations.observe(this,{
             if (it!=null&&binding.toolbar.visibility==View.GONE){
                 navController.navigate(R.id.toHome)
                 binding.toolbar.visibility = View.VISIBLE
+                viewModel.stations.removeObservers(this)
             }
         })
 
+        viewModel.favorites = AppData.getFavorites(this)
         viewModel.getStations()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -123,62 +140,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun showPlayer(station: Station){
+    @SuppressLint("ClickableViewAccessibility")
+    fun showPlayer(){
+        binding.progressPLayer.visibility = View.VISIBLE
         if (bound){
-            viewModel.station.value = station
             BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_EXPANDED
             binding.playPause.setOnClickListener {
-                station.isPlaying = !station.isPlaying
-                viewModel.station.value = station
-                if (!station.isPlaying) player.pause()
+                viewModel.station.value!!.isPlaying = !viewModel.station.value!!.isPlaying
+                viewModel.station.value = viewModel.station.value!!
+                if (!viewModel.station.value!!.isPlaying) player.pause()
                 else player.play()
             }
             player.setMediaItem(
                 MediaItem.Builder()
-                    .setUri(Uri.parse(station.bitrates[0].url))
+                    .setUri(Uri.parse(viewModel.station.value!!.bitrates[0].url))
                     .build())
             player.prepare()
-            service.station = station
+            player.playWhenReady = true
+            service.station = viewModel.station.value!!
+            binding.playerView.setOnTouchListener { _, _ ->
+                true
+            }
         } else {
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
-            serviceBundle.putSerializable("station", station)
+            serviceBundle.putSerializable("station", viewModel.station.value!!)
             intent.putExtra("bundle", serviceBundle)
             startService(intent)
-            bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+            bindService(intent,
+                serviceConnection, Context.BIND_AUTO_CREATE)
         }
     }
 
     override fun onSupportNavigateUp(): Boolean {
         return NavigationUI.navigateUp(navController, appBarConfiguration)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.main_menu, menu)
-        searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
-        searchView.apply {
-            maxWidth = Integer.MAX_VALUE
-            queryHint = getString(R.string.search)
-            setOnQueryTextListener(object: SearchView.OnQueryTextListener{
-                override fun onQueryTextSubmit(query: String): Boolean {
-                    return true
-                }
-                override fun onQueryTextChange(newText: String): Boolean {
-                    if (newText.length>2)
-                        viewModel.searchStations(newText)
-                    else if (newText.isEmpty()) viewModel.clearSearch()
-                    return true
-                }
-
-            })
-            setOnCloseListener {
-                viewModel.clearSearch()
-                onActionViewCollapsed()
-                true
-            }
-        }
-        return true
     }
 
     override fun onResume() {
@@ -189,13 +184,7 @@ class MainActivity : AppCompatActivity() {
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START))
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-        else {
-            if (!searchView.isIconified) {
-                searchView.isIconified = true
-            } else {
-                super.onBackPressed();
-            }
-        }
+        else super.onBackPressed()
     }
 
 }
