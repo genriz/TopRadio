@@ -13,7 +13,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
-    private val _stations = MutableLiveData<ArrayList<Station>>()
+    val _stations = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = _stations
     val station = MutableLiveData<Station>().apply { value = Station() }
     private val allStations = ArrayList<Station>()
