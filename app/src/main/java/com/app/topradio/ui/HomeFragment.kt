@@ -48,7 +48,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
                         searchView.isIconified = true
                     } else {
                         remove()
-                        requireActivity().onBackPressed()
+                        activity?.onBackPressed()
                     }
                 }
             })

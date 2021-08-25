@@ -55,7 +55,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
                         searchView.isIconified = true
                     } else {
                         remove()
-                        requireActivity().onBackPressed()
+                        activity?.onBackPressed()
                     }
                 }
             })
