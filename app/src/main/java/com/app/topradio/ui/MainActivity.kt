@@ -20,9 +20,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI
+import androidx.navigation.ui.NavigationUI.navigateUp
+import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.app.topradio.util.AppData
 import com.app.topradio.R
 import com.app.topradio.databinding.ActivityMainBinding
@@ -91,7 +91,6 @@ class MainActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         setSupportActionBar(binding.toolbar)
-        binding.toolbar.visibility = View.GONE
 
         BottomSheetBehavior.from(binding.playerView).skipCollapsed = true
         BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_HIDDEN
@@ -102,12 +101,15 @@ class MainActivity : AppCompatActivity() {
 
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.menu_home
+                R.id.menu_home,
+                R.id.menu_genres,
+                R.id.menu_cities,
+                R.id.menu_viewed
             ),
             findViewById(R.id.drawerLayout)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        binding.navView.setupWithNavController(navController)
+        setupWithNavController(binding.navView, navController)
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id){
@@ -119,13 +121,23 @@ class MainActivity : AppCompatActivity() {
                     supportActionBar!!.title = getString(R.string.favorites)
                     supportActionBar!!.setIcon(null)
                 }
+                R.id.menu_genres -> {
+                    supportActionBar!!.title = getString(R.string.menu_genres)
+                    supportActionBar!!.setIcon(null)
+                }
+                R.id.menu_cities -> {
+                    supportActionBar!!.title = getString(R.string.menu_cities)
+                    supportActionBar!!.setIcon(null)
+                }
+                R.id.menu_viewed -> {
+                    supportActionBar!!.title = getString(R.string.menu_viewed)
+                    supportActionBar!!.setIcon(null)
+                }
             }
         }
 
         viewModel.stations.observe(this,{
-            if (it!=null&&binding.toolbar.visibility==View.GONE){
-                navController.navigate(R.id.toHome)
-                binding.toolbar.visibility = View.VISIBLE
+            if (it!=null){
                 viewModel.stations.removeObservers(this)
                 bindService(Intent(this, PlayerService::class.java),
                     serviceConnection, Context.BIND_AUTO_CREATE)
@@ -162,8 +174,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        service.station = viewModel.station.value!!
-
         if (!bound){
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
@@ -177,7 +187,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
+        return navigateUp(navController, appBarConfiguration)
     }
 
     override fun onResume() {

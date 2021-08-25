@@ -12,25 +12,26 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
-    val _stations = MutableLiveData<ArrayList<Station>>()
-    val stations: LiveData<ArrayList<Station>> = _stations
+    val stationsApi = MutableLiveData<ArrayList<Station>>()
+    val stations: LiveData<ArrayList<Station>> = stationsApi
     val station = MutableLiveData<Station>().apply { value = Station() }
     private val allStations = ArrayList<Station>()
     var favorites = HashSet<String>()
 
+    private val genresApi = MutableLiveData<ArrayList<Genre>>()
+    val genres: LiveData<ArrayList<Genre>> = genresApi
+
+    private val citiesApi = MutableLiveData<ArrayList<City>>()
+    val cities: LiveData<ArrayList<City>> = citiesApi
+
     fun getStations(){
-        CoroutineScope(Dispatchers.IO).launch {
-            val response = ApiRadio().getApi().getRadios(AppData.auth)
-            if (response.isSuccessful){
-                allStations.clear()
-                allStations.addAll(response.body()!!)
-                allStations.forEach {
-                    if (favorites.contains(it.id.toString())) it.isFavorite = true
-                }
-                allStations.sortBy { it.position }
-                _stations.postValue(allStations)
-            }
+        allStations.clear()
+        allStations.addAll(AppData.stations)
+        allStations.forEach {
+            if (favorites.contains(it.id.toString())) it.isFavorite = true
         }
+        allStations.sortBy { it.position }
+        stationsApi.postValue(allStations)
     }
 
     fun searchStations (query: String){
@@ -40,7 +41,7 @@ class MainViewModel: ViewModel() {
                 stations.add(it)
         }
         stations.sortBy { it.position }
-        _stations.postValue(stations)
+        stationsApi.postValue(stations)
     }
 
     fun searchFavoritesStations (query: String){
@@ -50,10 +51,28 @@ class MainViewModel: ViewModel() {
                 stations.add(it)
         }
         stations.sortBy { it.position }
-        _stations.postValue(stations)
+        stationsApi.postValue(stations)
     }
 
     fun clearSearch (){
-        _stations.postValue(allStations)
+        stationsApi.postValue(allStations)
+    }
+
+    fun getGenres(){
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = ApiRadio().getApi().getGenres(AppData.auth)
+            if (response.isSuccessful){
+                genresApi.postValue(response.body())
+            }
+        }
+    }
+
+    fun getCities(){
+        CoroutineScope(Dispatchers.IO).launch {
+            val response = ApiRadio().getApi().getCities(AppData.auth)
+            if (response.isSuccessful){
+                citiesApi.postValue(response.body())
+            }
+        }
     }
 }

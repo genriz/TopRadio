@@ -1,6 +1,7 @@
 package com.app.topradio.main
 
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -48,4 +49,9 @@ fun setPlayingIcon (view: ImageView, isPlaying: Boolean){
         .placeholder(R.drawable.ic_play).into(view)
     else Glide.with(view).load(R.drawable.ic_play)
         .placeholder(R.drawable.ic_play).into(view)
+}
+
+@BindingAdapter("setCityColor")
+fun setCityColor (view: TextView, name: String){
+
 }

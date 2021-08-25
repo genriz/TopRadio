@@ -23,16 +23,6 @@
                 android:layout_height="60dp"
                 android:theme="@style/ToolbarTheme"
                 app:titleTextColor="@color/white">
-<!--                <LinearLayout-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:orientation="horizontal"-->
-<!--                    android:gravity="center_vertical">-->
-<!--                    <ImageView-->
-<!--                        android:layout_width="113dp"-->
-<!--                        android:layout_height="21dp"-->
-<!--                        android:src="@drawable/logo3"/>-->
-<!--                </LinearLayout>-->
             </com.google.android.material.appbar.MaterialToolbar>
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:layout_width="match_parent"
@@ -44,8 +34,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:defaultNavHost="true"
-                    app:layout_anchor="@id/playerView"
-                    app:layout_anchorGravity="top"
                     app:navGraph="@navigation/nav_graph"/>
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/playerView"

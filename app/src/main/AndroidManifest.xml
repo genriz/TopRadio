@@ -15,17 +15,18 @@
         android:theme="@style/Theme.TopRadio"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
-        <activity android:name=".ui.StationActivity"></activity>
-        <activity
-            android:name=".ui.MainActivity"
-            android:configChanges="orientation|screenSize">
+        <activity android:name=".ui.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".ui.MainActivity"
+            android:configChanges="orientation|screenSize">
+        </activity>
+        <activity android:name=".ui.StationActivity" />
         <service android:name=".util.PlayerService" />
     </application>
 

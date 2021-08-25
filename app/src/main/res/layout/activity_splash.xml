@@ -9,6 +9,7 @@
 
     <ImageView
         android:id="@+id/splashUp"
+        android:adjustViewBounds="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@id/logo"
@@ -27,7 +28,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/logo"
         android:layout_marginTop="24dp"
-        android:src="@drawable/splashdown"/>
+        android:src="@drawable/splashdown"
+        android:adjustViewBounds="true"/>
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"

@@ -72,7 +72,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
-        (activity as MainActivity).viewModel._stations.value =
+        (activity as MainActivity).viewModel.stationsApi.value =
             (activity as MainActivity).viewModel.stations.value
         if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
             (activity as MainActivity).viewModel.station.value =
