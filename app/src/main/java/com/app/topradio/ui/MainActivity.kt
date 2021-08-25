@@ -47,8 +47,11 @@ class MainActivity : AppCompatActivity() {
             val binder: PlayerService.PlayerServiceBinder = iBinder as PlayerService.PlayerServiceBinder
             service = binder.service
             player = binder.player
-            bound = true
-            showPlayer()
+            if (service.station.name!="") {
+                bound = true
+                viewModel.station.value = binder.station
+                showPlayer()
+            }
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
@@ -124,6 +127,8 @@ class MainActivity : AppCompatActivity() {
                 navController.navigate(R.id.toHome)
                 binding.toolbar.visibility = View.VISIBLE
                 viewModel.stations.removeObservers(this)
+                bindService(Intent(this, PlayerService::class.java),
+                    serviceConnection, Context.BIND_AUTO_CREATE)
             }
         })
 
@@ -141,39 +146,33 @@ class MainActivity : AppCompatActivity() {
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                 .createNotificationChannel(channel)
         }
-
-        Log.v("DASD", "$bound")
     }
 
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(){
         binding.progressPLayer.visibility = View.VISIBLE
-        if (bound){
-            BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_EXPANDED
-            binding.playPause.setOnClickListener {
-                viewModel.station.value!!.isPlaying = !viewModel.station.value!!.isPlaying
-                viewModel.station.value = viewModel.station.value!!
-                if (!viewModel.station.value!!.isPlaying) player.pause()
-                else player.play()
-            }
-            player.setMediaItem(
-                MediaItem.Builder()
-                    .setUri(Uri.parse(viewModel.station.value!!.bitrates[0].url))
-                    .build())
-            player.prepare()
-            player.playWhenReady = true
-            service.station = viewModel.station.value!!
-            binding.playerView.setOnTouchListener { _, _ ->
-                true
-            }
-        } else {
+        BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_EXPANDED
+        binding.playPause.setOnClickListener {
+            viewModel.station.value!!.isPlaying = !viewModel.station.value!!.isPlaying
+            viewModel.station.value = viewModel.station.value!!
+            if (!viewModel.station.value!!.isPlaying) player.pause()
+            else player.play()
+        }
+        binding.playerView.setOnTouchListener { _, _ ->
+            true
+        }
+
+        service.station = viewModel.station.value!!
+
+        if (!bound){
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("station", viewModel.station.value!!)
             intent.putExtra("bundle", serviceBundle)
             startService(intent)
-            bindService(intent,
-                serviceConnection, Context.BIND_AUTO_CREATE)
+        } else {
+            binding.progressPLayer.visibility = View.GONE
+            bound = false
         }
     }
 
