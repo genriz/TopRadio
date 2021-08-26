@@ -11,12 +11,13 @@ object AppData {
 
     val auth = Credentials.basic("goword", "0GdouNEOMd")
 
-    fun getFavorites(context: Context): HashSet<String>{
-        return (context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .getStringSet("favorites", HashSet<String>()) as HashSet<String>?)!!
+    fun getFavorites(context: Context){
+        favorites.addAll(context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getStringSet("favorites", HashSet<String>())!!)
     }
 
     val stations = ArrayList<Station>()
     val cities = ArrayList<City>()
     val genres = ArrayList<Genre>()
+    var favorites = HashSet<String>()
 }

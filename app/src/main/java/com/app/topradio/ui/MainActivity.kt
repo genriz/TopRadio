@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -75,6 +74,9 @@ class MainActivity : AppCompatActivity() {
                 viewModel.station.value!!.track = intent.getStringExtra("track_name")?:""
                 viewModel.station.value = viewModel.station.value
             }
+            if (intent?.action == "player_close") {
+                BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_HIDDEN
+            }
         }
     }
 
@@ -85,6 +87,8 @@ class MainActivity : AppCompatActivity() {
             .registerReceiver(playerStateChangedReceiver, IntentFilter("player_state_changed"))
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(playerStateChangedReceiver, IntentFilter("player_track_name"))
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(playerStateChangedReceiver, IntentFilter("player_close"))
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
@@ -136,16 +140,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.stations.observe(this,{
-            if (it!=null){
-                viewModel.stations.removeObservers(this)
-                bindService(Intent(this, PlayerService::class.java),
-                    serviceConnection, Context.BIND_AUTO_CREATE)
-            }
-        })
-
-        viewModel.favorites = AppData.getFavorites(this)
-        viewModel.getStations()
+        AppData.getFavorites(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -158,6 +153,9 @@ class MainActivity : AppCompatActivity() {
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                 .createNotificationChannel(channel)
         }
+
+        bindService(Intent(this, PlayerService::class.java),
+            serviceConnection, Context.BIND_AUTO_CREATE)
     }
 
     @SuppressLint("ClickableViewAccessibility")

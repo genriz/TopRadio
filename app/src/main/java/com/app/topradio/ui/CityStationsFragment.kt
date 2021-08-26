@@ -8,14 +8,13 @@ import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.app.topradio.R
-import com.app.topradio.databinding.FragmentFavoritesBinding
+import com.app.topradio.databinding.FragmentCityStationsBinding
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
-import com.app.topradio.util.AppData
 
-class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
+class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
-    private lateinit var binding: FragmentFavoritesBinding
+    private lateinit var binding: FragmentCityStationsBinding
     private lateinit var searchView: SearchView
     private val favorites = ArrayList<Station>()
 
@@ -24,7 +23,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_favorites, container, false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_city_stations, container, false)
         binding.adapter = StationsListAdapter(this)
         binding.lifecycleOwner = this
         return binding.root
@@ -73,15 +72,14 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
-        AppData.stations[AppData.stations.indexOf(station)].isFavorite = station.isFavorite
         (activity as MainActivity).viewModel.stationsApi.value =
-            AppData.stations
+            (activity as MainActivity).viewModel.stations.value
         if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
             (activity as MainActivity).viewModel.station.value =
                 (activity as MainActivity).viewModel.station.value
         }
         val favorites = HashSet<String>()
-        AppData.stations.forEach {
+        (activity as MainActivity).viewModel.stations.value!!.forEach {
             if (it.isFavorite){
                 favorites.add(it.id.toString())
             }
@@ -119,10 +117,6 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity).onBackPressed()
-        if (item.itemId==android.R.id.home) {
-            searchView.onActionViewCollapsed()
-            (activity as MainActivity).viewModel.clearSearchStations()
-        }
         return super.onOptionsItemSelected(item)
     }
 }

@@ -5,42 +5,38 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.app.topradio.databinding.StationItemListBinding
-import com.app.topradio.model.Station
+import com.app.topradio.databinding.GenresItemListBinding
+import com.app.topradio.model.Genre
 
 class GenresListAdapter(private val listener: OnClickListener):
-    ListAdapter<Station, GenresListAdapter.StationViewHolder>(Companion) {
+    ListAdapter<Genre, GenresListAdapter.GenreViewHolder>(Companion) {
 
-    class StationViewHolder(val binding: StationItemListBinding) :
+    class GenreViewHolder(val binding: GenresItemListBinding) :
         RecyclerView.ViewHolder(binding.root)
 
-    companion object: DiffUtil.ItemCallback<Station>() {
-        override fun areItemsTheSame(oldItem: Station, newItem: Station):
+    companion object: DiffUtil.ItemCallback<Genre>() {
+        override fun areItemsTheSame(oldItem: Genre, newItem: Genre):
                 Boolean = oldItem === newItem
-        override fun areContentsTheSame(oldItem: Station, newItem: Station):
+        override fun areContentsTheSame(oldItem: Genre, newItem: Genre):
                 Boolean = oldItem.id == newItem.id
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GenreViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val binding = StationItemListBinding.inflate(layoutInflater,parent,false)
-        return StationViewHolder(binding)
+        val binding = GenresItemListBinding.inflate(layoutInflater,parent,false)
+        return GenreViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: StationViewHolder, position: Int) {
-        val station = getItem(position)
-        holder.binding.station = station
+    override fun onBindViewHolder(holder: GenreViewHolder, position: Int) {
+        val genre = getItem(position)
+        holder.binding.genre = genre
         holder.binding.executePendingBindings()
         holder.binding.root.setOnClickListener {
-            listener.onStationClick(station)
-        }
-        holder.binding.favorite.setOnClickListener {
-            listener.onFavoriteClick(station, position)
+            listener.onGenreClick(genre)
         }
     }
 
     interface OnClickListener{
-        fun onStationClick(station: Station)
-        fun onFavoriteClick(station: Station, position: Int)
+        fun onGenreClick(genre: Genre)
     }
 }

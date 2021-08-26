@@ -102,6 +102,8 @@ class PlayerService: Service() {
                     override fun onNotificationCancelled(
                         notificationId: Int,
                         dismissedByUser: Boolean) {
+                        LocalBroadcastManager.getInstance(this@PlayerService)
+                            .sendBroadcast(Intent("player_close"))
                         stopSelf()
                     }
 

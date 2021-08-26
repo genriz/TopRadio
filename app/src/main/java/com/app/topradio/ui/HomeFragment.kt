@@ -11,6 +11,7 @@ import com.app.topradio.R
 import com.app.topradio.databinding.FragmentHomeBinding
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
+import com.app.topradio.util.AppData
 
 class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
 
@@ -34,6 +35,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
+                it.forEach { station ->
+                    if (AppData.favorites.contains(station.id.toString()))
+                        station.isFavorite = true
+                }
                 binding.adapter!!.submitList(it) {
                     binding.stationsList.scrollToPosition(0)
                 }
@@ -65,12 +70,13 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemChanged(position)
+        AppData.stations[AppData.stations.indexOf(station)].isFavorite = station.isFavorite
         if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
             (activity as MainActivity).viewModel.station.value =
                 (activity as MainActivity).viewModel.station.value
         }
         val favorites = HashSet<String>()
-        (activity as MainActivity).viewModel.stations.value!!.forEach {
+        AppData.stations.forEach {
             if (it.isFavorite){
                 favorites.add(it.id.toString())
             }
@@ -93,13 +99,13 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
                     if (newText.length>2)
                         (activity as MainActivity).viewModel.searchStations(newText)
                     else if (newText.isEmpty()) (activity as MainActivity)
-                        .viewModel.clearSearch()
+                        .viewModel.clearSearchStations()
                     return true
                 }
 
             })
             setOnCloseListener {
-                (activity as MainActivity).viewModel.clearSearch()
+                (activity as MainActivity).viewModel.clearSearchStations()
                 onActionViewCollapsed()
                 true
             }

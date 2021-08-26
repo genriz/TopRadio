@@ -12,31 +12,24 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
-    val stationsApi = MutableLiveData<ArrayList<Station>>()
+    val stationsApi = MutableLiveData<ArrayList<Station>>().apply {
+        value = AppData.stations
+    }
     val stations: LiveData<ArrayList<Station>> = stationsApi
     val station = MutableLiveData<Station>().apply { value = Station() }
-    private val allStations = ArrayList<Station>()
-    var favorites = HashSet<String>()
 
-    private val genresApi = MutableLiveData<ArrayList<Genre>>()
-    val genres: LiveData<ArrayList<Genre>> = genresApi
-
-    private val citiesApi = MutableLiveData<ArrayList<City>>()
-    val cities: LiveData<ArrayList<City>> = citiesApi
-
-    fun getStations(){
-        allStations.clear()
-        allStations.addAll(AppData.stations)
-        allStations.forEach {
-            if (favorites.contains(it.id.toString())) it.isFavorite = true
-        }
-        allStations.sortBy { it.position }
-        stationsApi.postValue(allStations)
+    private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
+        value = AppData.genres
     }
+    val genres: LiveData<ArrayList<Genre>> = genresApi
+    private val citiesApi = MutableLiveData<ArrayList<City>>().apply {
+        value = AppData.cities
+    }
+    val cities: LiveData<ArrayList<City>> = citiesApi
 
     fun searchStations (query: String){
         val stations = ArrayList<Station>()
-        allStations.forEach {
+        AppData.stations.forEach {
             if (it.name.lowercase().contains(query.lowercase()))
                 stations.add(it)
         }
@@ -46,7 +39,7 @@ class MainViewModel: ViewModel() {
 
     fun searchFavoritesStations (query: String){
         val stations = ArrayList<Station>()
-        allStations.forEach {
+        AppData.stations.forEach {
             if (it.isFavorite&&it.name.lowercase().contains(query.lowercase()))
                 stations.add(it)
         }
@@ -54,25 +47,35 @@ class MainViewModel: ViewModel() {
         stationsApi.postValue(stations)
     }
 
-    fun clearSearch (){
-        stationsApi.postValue(allStations)
+    fun clearSearchStations (){
+        stationsApi.postValue(AppData.stations)
     }
 
-    fun getGenres(){
-        CoroutineScope(Dispatchers.IO).launch {
-            val response = ApiRadio().getApi().getGenres(AppData.auth)
-            if (response.isSuccessful){
-                genresApi.postValue(response.body())
-            }
+    fun searchGenres (query: String){
+        val genresSearch = ArrayList<Genre>()
+        AppData.genres.forEach {
+            if (it.name.lowercase().contains(query.lowercase()))
+                genresSearch.add(it)
         }
+        genresSearch.sortBy { it.name }
+        genresApi.postValue(genresSearch)
     }
 
-    fun getCities(){
-        CoroutineScope(Dispatchers.IO).launch {
-            val response = ApiRadio().getApi().getCities(AppData.auth)
-            if (response.isSuccessful){
-                citiesApi.postValue(response.body())
-            }
+    fun clearSearchGenres (){
+        genresApi.postValue(AppData.genres)
+    }
+
+    fun searchCities (query: String){
+        val citiesSearch = ArrayList<City>()
+        AppData.cities.forEach {
+            if (it.name.lowercase().contains(query.lowercase()))
+                citiesSearch.add(it)
         }
+        citiesSearch.sortBy { it.name }
+        citiesApi.postValue(citiesSearch)
+    }
+
+    fun clearSearchCities (){
+        citiesApi.postValue(AppData.cities)
     }
 }
