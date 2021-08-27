@@ -9,12 +9,14 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.topradio.R
 import com.app.topradio.model.Station
 import com.app.topradio.ui.MainActivity
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
@@ -26,6 +28,7 @@ class PlayerService: Service() {
     private lateinit var playerNotificationManager: PlayerNotificationManager
     var station = Station()
     var stopped = false
+    var bitrateIndex = 0
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -36,8 +39,8 @@ class PlayerService: Service() {
         player = SimpleExoPlayer.Builder(this).build()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        intent.getBundleExtra("bundle")?.let{
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        intent?.getBundleExtra("bundle")?.let{
             station = it.getSerializable("station") as Station
             player.addMetadataOutput { metadata ->
                 for (n in 0 until metadata.length()) {
@@ -66,6 +69,23 @@ class PlayerService: Service() {
                         stopped = true
                         stopForeground(false)
                     } else stopped = false
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    super.onPlayerError(error)
+                    bitrateIndex++
+                    if (bitrateIndex<station.bitrates.size){
+                        player.setMediaItem(
+                            MediaItem.Builder()
+                                .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                                .build())
+                        player.prepare()
+                    } else {
+                        LocalBroadcastManager.getInstance(this@PlayerService)
+                            .sendBroadcast(Intent("player_state_changed").apply {
+                                putExtra("isPlaying", false)
+                            })
+                    }
                 }
             })
             playerNotificationManager = PlayerNotificationManager.Builder(this,
@@ -119,12 +139,12 @@ class PlayerService: Service() {
             playerNotificationManager.setSmallIcon(R.drawable.ic_radio)
             playerNotificationManager.setPlayer(player)
             player.playWhenReady = true
+            if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
             player.setMediaItem(
                 MediaItem.Builder()
-                    .setUri(Uri.parse(station.bitrates[0].url))
+                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
                     .build())
             player.prepare()
-
         }
 
         return START_STICKY

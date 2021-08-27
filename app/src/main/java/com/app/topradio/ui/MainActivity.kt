@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -48,7 +49,12 @@ class MainActivity : AppCompatActivity() {
             player = binder.player
             if (service.station.name!="") {
                 bound = true
-                viewModel.station.value = binder.station
+                viewModel.station.value = AppData.getStationById(binder.station.id)
+                if (player.isPlaying) {
+                    viewModel.station.value!!.isPlaying = true
+                    viewModel.station.value!!.track = binder.station.track
+                }
+                service.station = viewModel.station.value!!
                 showPlayer()
             }
         }
@@ -66,16 +72,24 @@ class MainActivity : AppCompatActivity() {
                 viewModel.station.value = viewModel.station.value
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
-                        binding.progressPLayer.visibility = View.VISIBLE
-                    } else binding.progressPLayer.visibility = View.GONE
-                } else binding.progressPLayer.visibility = View.GONE
+                        viewModel.playerWaiting.postValue(true)
+                        //binding.progressPlayer.visibility = View.VISIBLE
+                    } else {
+                        viewModel.playerWaiting.postValue(false)
+                        //binding.progressPlayer.visibility = View.GONE
+                    }
+                } else {
+                    viewModel.playerWaiting.postValue(false)
+                    //binding.progressPlayer.visibility = View.GONE
+                }
             }
             if (intent?.action == "player_track_name") {
                 viewModel.station.value!!.track = intent.getStringExtra("track_name")?:""
                 viewModel.station.value = viewModel.station.value
             }
             if (intent?.action == "player_close") {
-                BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_HIDDEN
+                BottomSheetBehavior.from(binding.playerView.root).state =
+                    BottomSheetBehavior.STATE_HIDDEN
             }
         }
     }
@@ -92,12 +106,45 @@ class MainActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
+        binding.playerView.viewModel = viewModel
+        binding.playerView.lifecycleOwner = this
         binding.lifecycleOwner = this
 
         setSupportActionBar(binding.toolbar)
 
-        BottomSheetBehavior.from(binding.playerView).skipCollapsed = true
-        BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_HIDDEN
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_HIDDEN
+
+        BottomSheetBehavior.from(binding.playerView.root)
+            .addBottomSheetCallback(object:BottomSheetBehavior.BottomSheetCallback(){
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                when (newState){
+                    BottomSheetBehavior.STATE_HIDDEN -> {
+                        binding.playerView.playerExpanded.visibility = View.GONE
+                        binding.playerView.playerMini.visibility = View.GONE
+                    }
+                    BottomSheetBehavior.STATE_COLLAPSED -> {
+                        binding.playerView.playerExpanded.visibility = View.GONE
+                        binding.playerView.playerMini.visibility = View.VISIBLE
+                        hideKeyboard()
+                    }
+                    BottomSheetBehavior.STATE_EXPANDED -> {
+                        binding.playerView.playerExpanded.visibility = View.VISIBLE
+                        binding.playerView.playerMini.visibility = View.GONE
+                        hideKeyboard()
+                    }
+                    BottomSheetBehavior.STATE_DRAGGING -> {
+                        binding.playerView.playerExpanded.visibility = View.VISIBLE
+                        binding.playerView.playerMini.visibility = View.VISIBLE
+                    }
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                binding.playerView.playerExpanded.alpha = slideOffset*1.3f
+                binding.playerView.playerMini.alpha = 1 - slideOffset*1.3f
+            }
+
+        })
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -140,8 +187,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        AppData.getFavorites(this)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 getString(R.string.app_name),
@@ -160,16 +205,36 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(){
-        binding.progressPLayer.visibility = View.VISIBLE
-        BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_EXPANDED
-        binding.playPause.setOnClickListener {
+        viewModel.playerWaiting.postValue(true)
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
+        binding.playerView.playPause.setOnClickListener {
             viewModel.station.value!!.isPlaying = !viewModel.station.value!!.isPlaying
             viewModel.station.value = viewModel.station.value!!
             if (!viewModel.station.value!!.isPlaying) player.pause()
             else player.play()
         }
-        binding.playerView.setOnTouchListener { _, _ ->
-            true
+        binding.playerView.playPauseExtended.setOnClickListener {
+            viewModel.station.value!!.isPlaying = !viewModel.station.value!!.isPlaying
+            viewModel.station.value = viewModel.station.value!!
+            if (!viewModel.station.value!!.isPlaying) player.pause()
+            else player.play()
+        }
+        binding.playerView.favoritePlayer.setOnClickListener {
+            viewModel.station.value!!.isFavorite = !viewModel.station.value!!.isFavorite
+            val position = viewModel.stations.value!!.indexOf(viewModel.station.value)
+            viewModel.updateItemPosition.value = position
+            viewModel.updateStation(this, viewModel.station.value!!)
+        }
+        binding.playerView.favoritePlayerExpanded.setOnClickListener {
+            viewModel.station.value!!.isFavorite = !viewModel.station.value!!.isFavorite
+            val position = viewModel.stations.value!!.indexOf(viewModel.station.value)
+            viewModel.updateItemPosition.value = position
+            viewModel.updateStation(this, viewModel.station.value!!)
+        }
+        binding.playerView.root.setOnClickListener {
+            binding.playerView.playerExpanded.visibility = View.VISIBLE
+            BottomSheetBehavior.from(binding.playerView.root).state =
+                BottomSheetBehavior.STATE_EXPANDED
         }
 
         if (!bound){
@@ -179,7 +244,7 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("bundle", serviceBundle)
             startService(intent)
         } else {
-            binding.progressPLayer.visibility = View.GONE
+            viewModel.playerWaiting.postValue(false)
             bound = false
         }
     }
@@ -188,15 +253,32 @@ class MainActivity : AppCompatActivity() {
         return navigateUp(navController, appBarConfiguration)
     }
 
+    fun hideKeyboard(){
+        val imm: InputMethodManager = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
+    }
+
     override fun onResume() {
         super.onResume()
-        binding.trackName.isSelected = true
+        binding.playerView.trackName.isSelected = true
+        binding.playerView.trackNameExpanded.isSelected = true
     }
 
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START))
             binding.drawerLayout.closeDrawer(GravityCompat.START)
+        if (BottomSheetBehavior.from(binding.playerView.root).state
+            == BottomSheetBehavior.STATE_EXPANDED) {
+            binding.playerView.playerMini.visibility = View.VISIBLE
+            BottomSheetBehavior.from(binding.playerView.root).state =
+                BottomSheetBehavior.STATE_COLLAPSED
+        }
         else super.onBackPressed()
+    }
+
+    fun toMiniPlayer(view: View) {
+        binding.playerView.playerMini.visibility = View.VISIBLE
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
 }

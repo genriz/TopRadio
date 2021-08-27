@@ -1,10 +1,13 @@
 package com.app.topradio.model
 
+import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.app.topradio.util.AppData
 import com.app.topradio.api.ApiRadio
+import com.app.topradio.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,6 +29,10 @@ class MainViewModel: ViewModel() {
         value = AppData.cities
     }
     val cities: LiveData<ArrayList<City>> = citiesApi
+
+    val updateItemPosition = MutableLiveData<Int>()
+
+    val playerWaiting = MutableLiveData<Boolean>()
 
     fun searchStations (query: String){
         val stations = ArrayList<Station>()
@@ -77,5 +84,22 @@ class MainViewModel: ViewModel() {
 
     fun clearSearchCities (){
         citiesApi.postValue(AppData.cities)
+    }
+
+    fun updateStation(context: Context, station: Station){
+        if (station.id==this.station.value!!.id){
+            this.station.value = station
+        }
+        AppData.stations[AppData.getPositionById(station.id)].isFavorite = station.isFavorite
+        val favorites = HashSet<String>()
+        AppData.stations.forEach {
+            if (it.isFavorite){
+                favorites.add(it.id.toString())
+            }
+        }
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .edit().putStringSet("favorites", favorites).apply()
+        AppData.getFavorites(context)
+        stationsApi.value = AppData.stations
     }
 }

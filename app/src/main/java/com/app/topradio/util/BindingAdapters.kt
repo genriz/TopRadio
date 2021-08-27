@@ -51,6 +51,14 @@ fun setPlayingIcon (view: ImageView, isPlaying: Boolean){
         .placeholder(R.drawable.ic_play).into(view)
 }
 
+@BindingAdapter("setPlayingIconExtended")
+fun setPlayingIconExtended (view: ImageView, isPlaying: Boolean){
+    if (isPlaying) Glide.with(view).load(R.drawable.ic_pause_extended)
+        .placeholder(R.drawable.ic_play_extended).into(view)
+    else Glide.with(view).load(R.drawable.ic_play_extended)
+        .placeholder(R.drawable.ic_play_extended).into(view)
+}
+
 @BindingAdapter("setCityColor")
 fun setCityColor (view: TextView, name: String){
 

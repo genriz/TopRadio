@@ -15,5 +15,5 @@
     <color name="menu_selected">#6C7BA4</color>
     <color name="menu_default">#CDD6EC</color>
     <color name="divider">#F3F4F5</color>
-    <color name="small_player_back">#AEB8D3</color>
+    <color name="small_player_back">#EBEEF6</color>
 </resources>

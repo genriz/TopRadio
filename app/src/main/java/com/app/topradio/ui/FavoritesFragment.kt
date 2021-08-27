@@ -48,46 +48,30 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
             }
         })
 
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (!searchView.isIconified) {
-                        searchView.isIconified = true
-                    } else {
-                        remove()
-                        activity?.onBackPressed()
-                    }
-                }
-            })
+//        requireActivity()
+//            .onBackPressedDispatcher
+//            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
+//                override fun handleOnBackPressed() {
+//                    if (!searchView.isIconified) {
+//                        searchView.isIconified = true
+//                    } else {
+//                        remove()
+//                        activity?.onBackPressed()
+//                    }
+//                }
+//            })
     }
 
     override fun onStationClick(station: Station) {
+        (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
         (activity as MainActivity).showPlayer()
-        if (!searchView.isIconified) {
-            searchView.onActionViewCollapsed()
-        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
-        AppData.stations[AppData.stations.indexOf(station)].isFavorite = station.isFavorite
-        (activity as MainActivity).viewModel.stationsApi.value =
-            AppData.stations
-        if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
-            (activity as MainActivity).viewModel.station.value =
-                (activity as MainActivity).viewModel.station.value
-        }
-        val favorites = HashSet<String>()
-        AppData.stations.forEach {
-            if (it.isFavorite){
-                favorites.add(it.id.toString())
-            }
-        }
-        requireContext().getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("favorites", favorites).apply()
+        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
