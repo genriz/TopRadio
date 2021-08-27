@@ -40,18 +40,18 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
             }
         })
 
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (!searchView.isIconified) {
-                        searchView.isIconified = true
-                    } else {
-                        remove()
-                        activity?.onBackPressed()
-                    }
-                }
-            })
+//        requireActivity()
+//            .onBackPressedDispatcher
+//            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
+//                override fun handleOnBackPressed() {
+//                    if (!searchView.isIconified) {
+//                        searchView.isIconified = true
+//                    } else {
+//                        remove()
+//                        activity?.onBackPressed()
+//                    }
+//                }
+//            })
 
     }
 

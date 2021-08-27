@@ -45,12 +45,18 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
             }
         })
 
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
+            it?.let{ position ->
+                binding.adapter!!.notifyItemChanged(position)
+            }
+        })
+
         requireActivity()
             .onBackPressedDispatcher
             .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     if (!searchView.isIconified) {
-                        searchView.isIconified = true
+                        searchView.onActionViewCollapsed()
                     } else {
                         remove()
                         activity?.onBackPressed()
@@ -60,29 +66,15 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onStationClick(station: Station) {
+        (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
         (activity as MainActivity).showPlayer()
-        if (!searchView.isIconified) {
-            searchView.onActionViewCollapsed()
-        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemChanged(position)
-        AppData.stations[AppData.stations.indexOf(station)].isFavorite = station.isFavorite
-        if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
-            (activity as MainActivity).viewModel.station.value =
-                (activity as MainActivity).viewModel.station.value
-        }
-        val favorites = HashSet<String>()
-        AppData.stations.forEach {
-            if (it.isFavorite){
-                favorites.add(it.id.toString())
-            }
-        }
-        requireContext().getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("favorites", favorites).apply()
+        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

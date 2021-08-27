@@ -1,6 +1,7 @@
 package com.app.topradio.ui
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -48,7 +50,12 @@ class MainActivity : AppCompatActivity() {
             player = binder.player
             if (service.station.name!="") {
                 bound = true
-                viewModel.station.value = binder.station
+                viewModel.station.value = AppData.getStationById(binder.station.id)
+                if (player.isPlaying) {
+                    viewModel.station.value!!.isPlaying = true
+                    viewModel.station.value!!.track = binder.station.track
+                }
+                service.station = viewModel.station.value!!
                 showPlayer()
             }
         }
@@ -98,6 +105,18 @@ class MainActivity : AppCompatActivity() {
 
         BottomSheetBehavior.from(binding.playerView).skipCollapsed = true
         BottomSheetBehavior.from(binding.playerView).state = BottomSheetBehavior.STATE_HIDDEN
+        BottomSheetBehavior.from(binding.playerView)
+            .addBottomSheetCallback(object: BottomSheetBehavior.BottomSheetCallback(){
+                override fun onStateChanged(bottomSheet: View, newState: Int) {
+                    if (newState == BottomSheetBehavior.STATE_EXPANDED)
+                        hideKeyboard()
+                }
+
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+
+                }
+
+            })
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -140,8 +159,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        AppData.getFavorites(this)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 getString(R.string.app_name),
@@ -168,8 +185,15 @@ class MainActivity : AppCompatActivity() {
             if (!viewModel.station.value!!.isPlaying) player.pause()
             else player.play()
         }
-        binding.playerView.setOnTouchListener { _, _ ->
-            true
+        binding.favoritePlayer.setOnClickListener {
+            viewModel.station.value!!.isFavorite = !viewModel.station.value!!.isFavorite
+            val position = viewModel.stations.value!!.indexOf(viewModel.station.value)
+            viewModel.updateItemPosition.value = position
+            viewModel.updateStation(this, viewModel.station.value!!)
+        }
+        binding.playerView.setOnClickListener {
+//            binding.playerView.playerExpanded.visibility = View.VISIBLE
+//            BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
         }
 
         if (!bound){
@@ -186,6 +210,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navigateUp(navController, appBarConfiguration)
+    }
+
+    fun hideKeyboard(){
+        val imm: InputMethodManager = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
     override fun onResume() {

@@ -40,7 +40,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/small_player_back"
-                    app:behavior_hideable="true"
+                    app:behavior_hideable="false"
                     app:behavior_peekHeight="0dp"
                     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
                     <androidx.cardview.widget.CardView
@@ -70,7 +70,7 @@
                         android:layout_height="0dp"
                         app:layout_constraintStart_toEndOf="@id/iconCard"
                         android:layout_marginStart="15dp"
-                        app:layout_constraintEnd_toStartOf="@id/favoriteIcon"
+                        app:layout_constraintEnd_toStartOf="@id/favoritePlayer"
                         android:layout_marginEnd="12dp"
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -104,14 +104,15 @@
                     </LinearLayout>
 
                     <ImageView
-                        android:id="@+id/favoriteIcon"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
+                        android:id="@+id/favoritePlayer"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
                         android:src="@drawable/ic_favorite_off_player"
                         app:layout_constraintTop_toTopOf="@id/playPause"
                         app:layout_constraintBottom_toBottomOf="@id/playPause"
                         app:layout_constraintEnd_toStartOf="@id/playPause"
-                        android:layout_marginEnd="19dp"
+                        android:padding="2dp"
+                        android:layout_marginEnd="11dp"
                         setFavoritePlayer="@{viewModel.station.favorite}"/>
 
                     <ProgressBar

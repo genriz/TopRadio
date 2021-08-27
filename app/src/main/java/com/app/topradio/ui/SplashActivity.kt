@@ -30,6 +30,7 @@ class SplashActivity : AppCompatActivity() {
                             if (response3.isSuccessful&&response3.body()!=null){
                                 AppData.cities.clear()
                                 AppData.cities.addAll(response3.body()!!)
+                                AppData.getFavorites(this@SplashActivity)
                                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                                 finish()
                             }
