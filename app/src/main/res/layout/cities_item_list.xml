@@ -31,7 +31,11 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                setCityColor="@{city.name}"/>
+                android:fontFamily="@font/roboto"
+                android:textSize="24sp"
+                android:textColor="@color/white"
+                setCityColor="@{city}"
+                android:gravity="center"/>
         </androidx.cardview.widget.CardView>
 
         <TextView
@@ -39,7 +43,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintStart_toEndOf="@id/iconCard"
             android:layout_marginStart="31dp"
-            app:layout_constraintEnd_toStartOf="@id/favorite"
+            app:layout_constraintEnd_toStartOf="@id/radio"
             android:layout_marginEnd="23dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -51,16 +55,29 @@
             android:ellipsize="end"/>
 
         <ImageView
-            android:id="@+id/favorite"
+            android:id="@+id/radio"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toStartOf="@id/count"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="14dp"
+            android:src="@drawable/ic_radio"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/count"
+            android:layout_width="40dp"
+            android:gravity="start"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="21dp"
-            android:src="@drawable/ic_radio"
-            android:padding="8dp"
-            tools:ignore="ContentDescription" />
+            android:layout_marginEnd="18dp"
+            android:fontFamily="@font/roboto"
+            android:textSize="15sp"
+            android:textColor="@color/stations_list"
+            android:text="@{String.valueOf(city.count)}"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -17,8 +17,16 @@
         android:id="@+id/menu_genres">
     </fragment>
     <fragment
+        android:name="com.app.topradio.ui.GenresStationsFragment"
+        android:id="@+id/genresStations">
+    </fragment>
+    <fragment
         android:name="com.app.topradio.ui.CitiesFragment"
         android:id="@+id/menu_cities">
+    </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.CityStationsFragment"
+        android:id="@+id/citiesStations">
     </fragment>
     <fragment
         android:name="com.app.topradio.ui.ViewedFragment"

@@ -1,8 +1,13 @@
 package com.app.topradio.ui
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import com.app.topradio.R
 import com.app.topradio.api.ApiRadio
 import com.app.topradio.util.AppData
@@ -14,7 +19,6 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
-
 
         CoroutineScope(Dispatchers.IO).launch {
             val response = ApiRadio().getApi().getRadios(AppData.auth)

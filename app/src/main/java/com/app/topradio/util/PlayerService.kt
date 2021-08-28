@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
@@ -15,6 +16,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.topradio.R
 import com.app.topradio.model.Station
 import com.app.topradio.ui.MainActivity
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
@@ -114,6 +118,7 @@ class PlayerService: Service() {
                     override fun getCurrentLargeIcon(
                         player: Player,
                         callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
+                        loadBitmap(station.icon, callback)
                         return null
                     }
 
@@ -135,9 +140,13 @@ class PlayerService: Service() {
                     }
                 })
                 .build()
-            playerNotificationManager.setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            playerNotificationManager.setSmallIcon(R.drawable.ic_radio)
-            playerNotificationManager.setPlayer(player)
+            playerNotificationManager.apply {
+                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                setSmallIcon(R.drawable.ic_radio)
+                setUseStopAction(true)
+                setPriority(NotificationCompat.PRIORITY_MAX)
+                setPlayer(player)
+            }
             player.playWhenReady = true
             if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
             player.setMediaItem(
@@ -148,6 +157,24 @@ class PlayerService: Service() {
         }
 
         return START_STICKY
+    }
+
+    private fun loadBitmap(url: String, callback: PlayerNotificationManager.BitmapCallback?) {
+        Glide.with(this)
+            .asBitmap()
+            .load("https://top-radio.ru/assets/image/radio/180/$url")
+            .into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(
+                    resource: Bitmap,
+                    transition: Transition<in Bitmap>?
+                ) {
+                    callback?.onBitmap(resource)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+
+                }
+            })
     }
 
     inner class PlayerServiceBinder : Binder() {

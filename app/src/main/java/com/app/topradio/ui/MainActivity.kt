@@ -73,14 +73,11 @@ class MainActivity : AppCompatActivity() {
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
                         viewModel.playerWaiting.postValue(true)
-                        //binding.progressPlayer.visibility = View.VISIBLE
                     } else {
                         viewModel.playerWaiting.postValue(false)
-                        //binding.progressPlayer.visibility = View.GONE
                     }
                 } else {
                     viewModel.playerWaiting.postValue(false)
-                    //binding.progressPlayer.visibility = View.GONE
                 }
             }
             if (intent?.action == "player_track_name") {
@@ -88,6 +85,7 @@ class MainActivity : AppCompatActivity() {
                 viewModel.station.value = viewModel.station.value
             }
             if (intent?.action == "player_close") {
+                BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_HIDDEN
             }
@@ -123,6 +121,7 @@ class MainActivity : AppCompatActivity() {
                         binding.playerView.playerMini.visibility = View.GONE
                     }
                     BottomSheetBehavior.STATE_COLLAPSED -> {
+                        BottomSheetBehavior.from(binding.playerView.root).isHideable = false
                         binding.playerView.playerExpanded.visibility = View.GONE
                         binding.playerView.playerMini.visibility = View.VISIBLE
                         hideKeyboard()

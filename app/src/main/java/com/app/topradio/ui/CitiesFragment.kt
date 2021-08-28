@@ -40,19 +40,6 @@ class CitiesFragment: Fragment(), CitiesListAdapter.OnClickListener {
             }
         })
 
-//        requireActivity()
-//            .onBackPressedDispatcher
-//            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
-//                override fun handleOnBackPressed() {
-//                    if (!searchView.isIconified) {
-//                        searchView.isIconified = true
-//                    } else {
-//                        remove()
-//                        activity?.onBackPressed()
-//                    }
-//                }
-//            })
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -89,6 +76,11 @@ class CitiesFragment: Fragment(), CitiesListAdapter.OnClickListener {
     }
 
     override fun onCityClick(city: City) {
-
+        (activity as MainActivity).hideKeyboard()
+        val bundle = Bundle()
+        bundle.putInt("cityId", city.id)
+        bundle.putString("cityName", city.name)
+        (activity as MainActivity).navController.navigate(R.id.citiesStations, bundle)
     }
+
 }

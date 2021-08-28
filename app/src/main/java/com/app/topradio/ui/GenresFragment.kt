@@ -40,19 +40,6 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
             }
         })
 
-//        requireActivity()
-//            .onBackPressedDispatcher
-//            .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
-//                override fun handleOnBackPressed() {
-//                    if (!searchView.isIconified) {
-//                        searchView.isIconified = true
-//                    } else {
-//                        remove()
-//                        activity?.onBackPressed()
-//                    }
-//                }
-//            })
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -89,6 +76,9 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
     }
 
     override fun onGenreClick(genre: Genre) {
-
+        val bundle = Bundle()
+        bundle.putInt("genreId", genre.id)
+        bundle.putString("genreName", genre.name)
+        (activity as MainActivity).navController.navigate(R.id.genresStations, bundle)
     }
 }

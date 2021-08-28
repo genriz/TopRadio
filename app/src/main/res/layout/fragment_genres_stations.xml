@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="adapter"
+            type="com.app.topradio.ui.adapters.StationsListAdapter"/>
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/back_main_container">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/stationsList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            setAdapter="@{adapter}"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:layout_marginTop="7dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

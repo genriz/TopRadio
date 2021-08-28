@@ -1,12 +1,17 @@
 package com.app.topradio.main
 
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.databinding.BindingAdapter
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.app.topradio.R
+import com.app.topradio.model.City
+import com.app.topradio.model.Genre
+import com.app.topradio.util.AppData
 import com.bumptech.glide.Glide
 
 
@@ -60,6 +65,23 @@ fun setPlayingIconExtended (view: ImageView, isPlaying: Boolean){
 }
 
 @BindingAdapter("setCityColor")
-fun setCityColor (view: TextView, name: String){
+fun setCityColor (view: TextView, city: City){
+    view.text = city.name.first().uppercase()
+    val position = AppData.cities.indexOf(city)
+    val startColor = ContextCompat.getColor(view.context, R.color.startGradient)
+    val endColor = ContextCompat.getColor(view.context, R.color.endGradient)
+    val color = ColorUtils.blendARGB(startColor, endColor,
+        position.toFloat()/AppData.cities.size.toFloat())
+    view.setBackgroundColor(color)
+}
 
+@BindingAdapter("setGenreColor")
+fun setGenreColor (view: TextView, genre: Genre){
+    view.text = genre.name.first().uppercase()
+    val position = AppData.genres.indexOf(genre)
+    val startColor = ContextCompat.getColor(view.context, R.color.startGradient)
+    val endColor = ContextCompat.getColor(view.context, R.color.endGradient)
+    val color = ColorUtils.blendARGB(startColor, endColor,
+        position.toFloat()/AppData.genres.size.toFloat())
+    view.setBackgroundColor(color)
 }

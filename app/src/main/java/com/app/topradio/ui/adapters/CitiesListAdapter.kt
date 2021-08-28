@@ -2,9 +2,11 @@ package com.app.topradio.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.app.topradio.R
 import com.app.topradio.databinding.CitiesItemListBinding
 import com.app.topradio.model.City
 

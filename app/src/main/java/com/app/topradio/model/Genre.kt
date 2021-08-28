@@ -7,4 +7,5 @@ class Genre {
     @SerializedName("pa")
     var name = ""
     var icon = ""
+    var count = 0
 }

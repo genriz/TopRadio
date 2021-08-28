@@ -13,6 +13,10 @@ class Station: Serializable {
     var icon = ""
     @SerializedName("st")
     var bitrates = ArrayList<Bitrate>()
+    @SerializedName("ci")
+    var cities = ArrayList<Int>()
+    @SerializedName("ge")
+    var genres = ArrayList<Int>()
     var isFavorite = false
     var isPlaying = false
     var isViewed = false

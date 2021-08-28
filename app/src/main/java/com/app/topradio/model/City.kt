@@ -6,4 +6,5 @@ class City {
     var id = 0
     @SerializedName("pa")
     var name = ""
+    var count = 0
 }

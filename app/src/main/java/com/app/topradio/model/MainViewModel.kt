@@ -22,10 +22,25 @@ class MainViewModel: ViewModel() {
     val station = MutableLiveData<Station>().apply { value = Station() }
 
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
+        AppData.genres.forEach { genre ->
+            var count = 0
+            AppData.stations.forEach { station ->
+                if (station.genres.contains(genre.id)) count++
+            }
+            genre.count = count
+        }
         value = AppData.genres
     }
     val genres: LiveData<ArrayList<Genre>> = genresApi
+
     private val citiesApi = MutableLiveData<ArrayList<City>>().apply {
+        AppData.cities.forEach { city ->
+            var count = 0
+            AppData.stations.forEach { station ->
+                if (station.cities.contains(city.id)) count++
+            }
+            city.count = count
+        }
         value = AppData.cities
     }
     val cities: LiveData<ArrayList<City>> = citiesApi
