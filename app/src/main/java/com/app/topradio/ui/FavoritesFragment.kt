@@ -17,7 +17,6 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     private lateinit var binding: FragmentFavoritesBinding
     private lateinit var searchView: SearchView
-    private val favorites = ArrayList<Station>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,16 +36,11 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                favorites.clear()
-                binding.adapter!!.notifyDataSetChanged()
-                it.forEach { station ->
-                    if (station.isFavorite) favorites.add(station)
-                }
-                binding.adapter!!.submitList(favorites) {
-                    binding.stationsList.scrollToPosition(0)
-                }
+                binding.adapter!!.submitList(it)
             }
         })
+
+        (activity as MainActivity).viewModel.getFavoriteStations()
 
 //        requireActivity()
 //            .onBackPressedDispatcher
@@ -65,12 +59,14 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
-        (activity as MainActivity).showPlayer()
+        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
+        (activity as MainActivity).showPlayer(true)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
+        (activity as MainActivity).viewModel.stations.value!!.remove(station)
         (activity as MainActivity).viewModel.updateStation(requireContext(), station)
     }
 

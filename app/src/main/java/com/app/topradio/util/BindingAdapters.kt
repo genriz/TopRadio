@@ -44,8 +44,10 @@ fun setFavorite (view: ImageView, favorite: Boolean){
 
 @BindingAdapter("setFavoritePlayer")
 fun setFavoritePlayer (view: ImageView, favorite: Boolean){
-    if (favorite) Glide.with(view).load(R.drawable.ic_favorite_on).into(view)
-    else Glide.with(view).load(R.drawable.ic_favorite_off_player).into(view)
+    if (favorite) Glide.with(view).load(R.drawable.ic_favorite_on)
+        .placeholder(R.drawable.ic_favorite_off).into(view)
+    else Glide.with(view).load(R.drawable.ic_favorite_off_player)
+        .placeholder(R.drawable.ic_favorite_off).into(view)
 }
 
 @BindingAdapter("setPlayingIcon")
@@ -62,6 +64,14 @@ fun setPlayingIconExtended (view: ImageView, isPlaying: Boolean){
         .placeholder(R.drawable.ic_play_extended).into(view)
     else Glide.with(view).load(R.drawable.ic_play_extended)
         .placeholder(R.drawable.ic_play_extended).into(view)
+}
+
+@BindingAdapter("setRecordingIconExtended")
+fun setRecordingIconExtended (view: ImageView, isRecording: Boolean){
+    if (isRecording) Glide.with(view).load(R.drawable.ic_record_on)
+        .placeholder(R.drawable.ic_record_off).into(view)
+    else Glide.with(view).load(R.drawable.ic_record_off)
+        .placeholder(R.drawable.ic_record_off).into(view)
 }
 
 @BindingAdapter("setCityColor")

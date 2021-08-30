@@ -3,7 +3,6 @@ package com.app.topradio.ui
 import android.app.Activity
 import android.os.Bundle
 import android.view.*
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -16,7 +15,6 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     private lateinit var binding: FragmentGenresStationsBinding
     private lateinit var searchView: SearchView
-    private val cityStations = ArrayList<Station>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,22 +40,25 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                cityStations.clear()
-                binding.adapter!!.notifyDataSetChanged()
-                it.forEach { station ->
-                    if (station.genres.contains(genreId)) cityStations.add(station)
-                }
-                binding.adapter!!.submitList(cityStations) {
-                    binding.stationsList.scrollToPosition(0)
-                }
+                binding.adapter!!.submitList(it)
             }
         })
+
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
+            it?.let{ position ->
+                binding.adapter!!.notifyItemChanged(position)
+            }
+        })
+
+        (activity as MainActivity).viewModel.getGenreStations(genreId)
 
     }
 
     override fun onStationClick(station: Station) {
+        (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
-        (activity as MainActivity).showPlayer()
+        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
+        (activity as MainActivity).showPlayer(true)
         if (!searchView.isIconified) {
             searchView.onActionViewCollapsed()
         }
@@ -65,21 +66,8 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
-        binding.adapter!!.notifyItemRemoved(position)
-        (activity as MainActivity).viewModel.stationsApi.value =
-            (activity as MainActivity).viewModel.stations.value
-        if (station.id==(activity as MainActivity).viewModel.station.value!!.id){
-            (activity as MainActivity).viewModel.station.value =
-                (activity as MainActivity).viewModel.station.value
-        }
-        val favorites = HashSet<String>()
-        (activity as MainActivity).viewModel.stations.value!!.forEach {
-            if (it.isFavorite){
-                favorites.add(it.id.toString())
-            }
-        }
-        requireContext().getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("favorites", favorites).apply()
+        binding.adapter!!.notifyItemChanged(position)
+        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -153,7 +153,7 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@drawable/ic_favorite_off_station"
-                    setFavoritePlayer="@{viewModel.station.favorite}"
+                    setFavoritePlayer="@{viewModel.stationPager.favorite}"
                     android:padding="2dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
@@ -170,6 +170,26 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:id="@+id/recordExtended"
+                app:layout_constraintWidth_percent="0.18"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintTop_toTopOf="@id/playPauseExtended"
+                app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
+                app:layout_constraintEnd_toStartOf="@id/playPauseExtended"
+                app:layout_constraintStart_toStartOf="parent"
+                app:cardElevation="20dp"
+                app:cardCornerRadius="100dp"
+                android:layout_margin="20dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_record_off"
+                    setRecordingIconExtended="@{viewModel.playerRecording}" />
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
                 android:id="@+id/playPauseExtended"
                 app:layout_constraintWidth_percent="0.23"
                 app:layout_constraintDimensionRatio="1:1"
@@ -178,12 +198,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:cardElevation="20dp"
                 app:cardCornerRadius="100dp"
-                android:layout_margin="20dp">
+                android:layout_marginBottom="80dp">
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_play_extended"
-                    setPlayingIconExtended="@{viewModel.stations.get(viewModel.currentStationPosition).isPlaying}" />
+                    setPlayingIconExtended="@{viewModel.stationPager.isPlaying}" />
             </androidx.cardview.widget.CardView>
             <ProgressBar
                 android:id="@+id/progressPlayerExtended"

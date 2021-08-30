@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Binder
 import android.os.Bundle
+import android.os.Environment
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -24,6 +25,13 @@ import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
+import java.util.*
 
 
 class PlayerService: Service() {
@@ -33,6 +41,7 @@ class PlayerService: Service() {
     var station = Station()
     var stopped = false
     var bitrateIndex = 0
+    private lateinit var fileOutputStream: FileOutputStream
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -146,6 +155,8 @@ class PlayerService: Service() {
                 setUseStopAction(true)
                 setPriority(NotificationCompat.PRIORITY_MAX)
                 setPlayer(player)
+                setUseNextAction(false)
+                setUsePreviousAction(false)
             }
             player.playWhenReady = true
             if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
@@ -175,6 +186,29 @@ class PlayerService: Service() {
 
                 }
             })
+    }
+
+    fun recordAudio(url: String){
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val urlPath = URL(url)
+                val folder = File(Environment.getExternalStorageDirectory(), "TopRadio")
+                val fileAudio = File(folder, "${Calendar.getInstance().timeInMillis}.mp3")
+                if (!folder.exists()) folder.mkdirs()
+                val inputStream = urlPath.openStream()
+                fileOutputStream = FileOutputStream(fileAudio)
+                var c: Int
+                while (inputStream.read().also { c = it } != -1) {
+                    fileOutputStream.write(c)
+                    c++
+                }
+            } catch (e:Exception) {e.printStackTrace()}
+        }
+
+    }
+
+    fun stopRecord(){
+        fileOutputStream.close()
     }
 
     inner class PlayerServiceBinder : Binder() {

@@ -35,7 +35,7 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.genres.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it) {
-                    binding.genresList.scrollToPosition(0)
+                    //binding.genresList.scrollToPosition(0)
                 }
             }
         })

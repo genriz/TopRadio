@@ -35,7 +35,7 @@ class CitiesFragment: Fragment(), CitiesListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.cities.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it) {
-                    binding.citiesList.scrollToPosition(0)
+                    //binding.citiesList.scrollToPosition(0)
                 }
             }
         })

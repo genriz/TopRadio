@@ -39,9 +39,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
                     if (AppData.favorites.contains(station.id.toString()))
                         station.isFavorite = true
                 }
-                binding.adapter!!.submitList(it) {
-                    binding.stationsList.scrollToPosition(0)
-                }
+                binding.adapter!!.submitList(it)
+                (activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -50,6 +49,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
                 binding.adapter!!.notifyItemChanged(position)
             }
         })
+
+        (activity as MainActivity).viewModel.getAllStations()
 
         requireActivity()
             .onBackPressedDispatcher
@@ -68,7 +69,9 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
-        (activity as MainActivity).showPlayer()
+        (activity as MainActivity).viewModel.stationPager.value = station
+        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
+        (activity as MainActivity).showPlayer(false)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {

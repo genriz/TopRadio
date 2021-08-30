@@ -15,11 +15,39 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
-    val stationsApi = MutableLiveData<ArrayList<Station>>().apply {
-        value = AppData.stations
-    }
+    val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
+
+    fun getAllStations(){
+        stationsApi.postValue(AppData.stations)
+    }
+
+    fun getFavoriteStations(){
+        val favorites = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.isFavorite) favorites.add(station)
+        }
+        stationsApi.postValue(favorites)
+    }
+
+    fun getGenreStations(genreId: Int){
+        val genreStations = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.genres.contains(genreId)) genreStations.add(station)
+        }
+        stationsApi.postValue(genreStations)
+    }
+
+    fun getCityStations(cityId: Int){
+        val cityStations = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.cities.contains(cityId)) cityStations.add(station)
+        }
+        stationsApi.postValue(cityStations)
+    }
+
     val station = MutableLiveData<Station>().apply { value = Station() }
+    val stationPager = MutableLiveData<Station>().apply { value = Station() }
 
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
         AppData.genres.forEach { genre ->
@@ -48,6 +76,7 @@ class MainViewModel: ViewModel() {
     val updateItemPosition = MutableLiveData<Int>()
 
     val playerWaiting = MutableLiveData<Boolean>()
+    val playerRecording = MutableLiveData<Boolean>().apply { value = false }
 
     fun searchStations (query: String){
         val stations = ArrayList<Station>()
@@ -105,7 +134,8 @@ class MainViewModel: ViewModel() {
         if (station.id==this.station.value!!.id){
             this.station.value = station
         }
-        AppData.stations[AppData.getPositionById(station.id)].isFavorite = station.isFavorite
+        if (stations.value!!.contains(station))
+            stations.value!![stations.value!!.indexOf(station)].isFavorite = station.isFavorite
         val favorites = HashSet<String>()
         AppData.stations.forEach {
             if (it.isFavorite){
@@ -115,6 +145,6 @@ class MainViewModel: ViewModel() {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
             .edit().putStringSet("favorites", favorites).apply()
         AppData.getFavorites(context)
-        stationsApi.value = AppData.stations
+        stationsApi.value = stations.value
     }
 }
