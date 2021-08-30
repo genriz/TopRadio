@@ -7,11 +7,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Binder
-import android.os.Bundle
-import android.os.Environment
-import android.os.IBinder
+import android.os.*
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.topradio.R
@@ -25,12 +23,12 @@ import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.time.Clock.tick
 import java.util.*
 
 
@@ -42,6 +40,8 @@ class PlayerService: Service() {
     var stopped = false
     var bitrateIndex = 0
     private lateinit var fileOutputStream: FileOutputStream
+    val handler = Handler(Looper.getMainLooper())
+    val timer = Timer(false)
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -74,20 +74,28 @@ class PlayerService: Service() {
             player.addListener(object: Player.Listener{
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     station.isPlaying = isPlaying
+                    if (!isPlaying) {
+                        stopped = true
+                        stopForeground(false)
+                        if (station.isRecording) {
+                            station.isRecording = false
+                            LocalBroadcastManager.getInstance(this@PlayerService)
+                                .sendBroadcast(Intent("player_stop_record"))
+                        }
+                    } else {
+                        station.bitrates[bitrateIndex].isSelected = true
+                        stopped = false
+                    }
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_state_changed").apply {
                             putExtra("isPlaying", isPlaying)
                         })
-                    if (!isPlaying) {
-                        stopped = true
-                        stopForeground(false)
-                    } else stopped = false
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
-                    bitrateIndex++
                     if (bitrateIndex<station.bitrates.size){
+                        bitrateIndex++
                         player.setMediaItem(
                             MediaItem.Builder()
                                 .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
@@ -138,6 +146,8 @@ class PlayerService: Service() {
                         dismissedByUser: Boolean) {
                         LocalBroadcastManager.getInstance(this@PlayerService)
                             .sendBroadcast(Intent("player_close"))
+                        LocalBroadcastManager.getInstance(this@PlayerService)
+                            .sendBroadcast(Intent("player_stop_record"))
                         stopSelf()
                     }
 
@@ -188,12 +198,15 @@ class PlayerService: Service() {
             })
     }
 
-    fun recordAudio(url: String){
+    fun recordAudio(){
+        station.isRecording = true
+        startTimer()
+        Toast.makeText(this@PlayerService, R.string.start_record, Toast.LENGTH_SHORT).show()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val urlPath = URL(url)
+                val urlPath = URL(station.bitrates[bitrateIndex].url)
                 val folder = File(Environment.getExternalStorageDirectory(), "TopRadio")
-                val fileAudio = File(folder, "${Calendar.getInstance().timeInMillis}.mp3")
+                val fileAudio = File(folder, "${station.name}_${Calendar.getInstance().timeInMillis}.mp3")
                 if (!folder.exists()) folder.mkdirs()
                 val inputStream = urlPath.openStream()
                 fileOutputStream = FileOutputStream(fileAudio)
@@ -204,11 +217,39 @@ class PlayerService: Service() {
                 }
             } catch (e:Exception) {e.printStackTrace()}
         }
+    }
 
+    fun startTimer(){
+        val startTime = System.currentTimeMillis()
+        val r: Runnable = object : Runnable {
+            override fun run() {
+                handler.postDelayed(this, 1000)
+                val time = SimpleDateFormat("mm:ss", Locale.getDefault())
+                    .format(System.currentTimeMillis()-startTime)
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_record_time").apply {
+                        putExtra("time", time)
+                    })
+            }
+        }
+        r.run()
     }
 
     fun stopRecord(){
+        handler.removeCallbacksAndMessages(null)
+        station.isRecording = false
         fileOutputStream.close()
+        Toast.makeText(this@PlayerService, R.string.stop_record, Toast.LENGTH_SHORT).show()
+    }
+
+    fun setBitrate(index: Int){
+        bitrateIndex = index
+        if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
+        player.setMediaItem(
+            MediaItem.Builder()
+                .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                .build())
+        player.prepare()
     }
 
     inner class PlayerServiceBinder : Binder() {

@@ -15,6 +15,7 @@ import android.os.Environment
 import android.os.IBinder
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -29,6 +30,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.app.topradio.R
 import com.app.topradio.databinding.ActivityMainBinding
+import com.app.topradio.model.Bitrate
 import com.app.topradio.model.MainViewModel
 import com.app.topradio.model.Station
 import com.app.topradio.ui.adapters.OnClick
@@ -37,13 +39,11 @@ import com.app.topradio.util.AppData
 import com.app.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.snackbar.Snackbar
 import pub.devrel.easypermissions.EasyPermissions
-import java.util.*
 import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick {
+class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick{
 
     val viewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
     lateinit var navController: NavController
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private lateinit var service: PlayerService
     private lateinit var player: SimpleExoPlayer
     private var bound = false
-    private val playerStationsAdapter = PlayerPagerAdapter(this)
+    private val playerStationsAdapter = PlayerPagerAdapter(this, this)
     private var currentPagePosition = 0
     private val android11StorageRequest = 3434
 
@@ -67,6 +67,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 if (player.isPlaying) {
                     viewModel.station.value!!.isPlaying = true
                     viewModel.station.value!!.track = binder.station.track
+                    viewModel.playerRecording.postValue(binder.station.isRecording)
+                    viewModel.station.value!!.isRecording = binder.station.isRecording
+                    viewModel.station.value!!.bitrates = binder.station.bitrates
                     viewModel.station.value = viewModel.station.value
                     viewModel.stationPager.value = viewModel.station.value!!
                     currentPagePosition = playerStationsAdapter.currentList
@@ -89,7 +92,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             if (intent?.action == "player_state_changed") {
                 viewModel.station.value!!.isPlaying =
                     intent.getBooleanExtra("isPlaying", false)
-                viewModel.station.value = viewModel.station.value
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
                         viewModel.playerWaiting.postValue(true)
@@ -97,8 +99,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                         viewModel.playerWaiting.postValue(false)
                     }
                 } else {
+                    viewModel.station.value!!.bitrates = service.station.bitrates
                     viewModel.playerWaiting.postValue(false)
                 }
+                viewModel.station.value = viewModel.station.value
                 viewModel.stationPager.value = viewModel.station.value!!
                 currentPagePosition = playerStationsAdapter.currentList
                     .indexOf(viewModel.stationPager.value!!)
@@ -119,6 +123,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_HIDDEN
             }
+            if (intent?.action == "player_stop_record") {
+                stopRecord()
+            }
+            if (intent?.action == "player_record_time") {
+                viewModel.recordTime.postValue(intent.getStringExtra("time")?:"")
+            }
         }
     }
 
@@ -131,6 +141,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             .registerReceiver(playerStateChangedReceiver, IntentFilter("player_track_name"))
         LocalBroadcastManager.getInstance(this)
             .registerReceiver(playerStateChangedReceiver, IntentFilter("player_close"))
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(playerStateChangedReceiver, IntentFilter("player_stop_record"))
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(playerStateChangedReceiver, IntentFilter("player_record_time"))
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.viewModel = viewModel
@@ -254,9 +268,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 if (!viewModel.playerRecording.value!!)
                     checkPermissions()
                 else {
-                    viewModel.playerRecording.postValue(false)
-                    service.stopRecord()
-//                    fileOutputStream.close()
+                    stopRecord()
                 }
             }
         }
@@ -279,6 +291,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
                     viewModel.stationPager.value = playerStationsAdapter.currentList[position]
+//                    playerStationsAdapter
+//                        .notifyItemChanged(position)
                 }
             })
         } else {
@@ -295,6 +309,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             serviceBundle.putSerializable("station", viewModel.station.value!!)
             intent.putExtra("bundle", serviceBundle)
             startService(intent)
+            stopRecord()
         } else {
             viewModel.playerWaiting.postValue(false)
             bound = false
@@ -377,18 +392,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     private fun recordAudio() {
         viewModel.playerRecording.postValue(true)
-        service.recordAudio(viewModel.station.value!!.bitrates[0].url)
-//        val url = URL(viewModel.station.value!!.bitrates[0].url)
-//        val folder = File(Environment.getExternalStorageDirectory(), "TopRadio")
-//        val fileAudio = File(folder, "${Calendar.getInstance().timeInMillis}.mp3")
-//        if (!folder.exists()) folder.mkdirs()
-//        val inputStream = url.openStream()
-//        fileOutputStream = FileOutputStream(fileAudio)
-//        var c: Int
-//        while (inputStream.read().also { c = it } != -1) {
-//            fileOutputStream.write(c)
-//            c++
-//        }
+        service.recordAudio()
+    }
+
+    private fun stopRecord(){
+        if (viewModel.playerRecording.value!!){
+            viewModel.playerRecording.postValue(false)
+            viewModel.recordTime.postValue("")
+            service.stopRecord()
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -448,7 +460,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     override fun onCopyClick(text: String) {
         (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager)
             .setPrimaryClip(ClipData.newPlainText("topradio", text))
-        Snackbar.make(binding.playerView.playPauseExtended, R.string.copied, Snackbar.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onBitrateClick(bitrate: Bitrate) {
+        viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
+        service.setBitrate(viewModel.station.value!!.bitrates.indexOf(bitrate))
     }
 
 }

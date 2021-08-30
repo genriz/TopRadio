@@ -18,34 +18,6 @@ class MainViewModel: ViewModel() {
     val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
 
-    fun getAllStations(){
-        stationsApi.postValue(AppData.stations)
-    }
-
-    fun getFavoriteStations(){
-        val favorites = ArrayList<Station>()
-        AppData.stations.forEach {station->
-            if (station.isFavorite) favorites.add(station)
-        }
-        stationsApi.postValue(favorites)
-    }
-
-    fun getGenreStations(genreId: Int){
-        val genreStations = ArrayList<Station>()
-        AppData.stations.forEach {station->
-            if (station.genres.contains(genreId)) genreStations.add(station)
-        }
-        stationsApi.postValue(genreStations)
-    }
-
-    fun getCityStations(cityId: Int){
-        val cityStations = ArrayList<Station>()
-        AppData.stations.forEach {station->
-            if (station.cities.contains(cityId)) cityStations.add(station)
-        }
-        stationsApi.postValue(cityStations)
-    }
-
     val station = MutableLiveData<Station>().apply { value = Station() }
     val stationPager = MutableLiveData<Station>().apply { value = Station() }
 
@@ -74,9 +46,37 @@ class MainViewModel: ViewModel() {
     val cities: LiveData<ArrayList<City>> = citiesApi
 
     val updateItemPosition = MutableLiveData<Int>()
-
     val playerWaiting = MutableLiveData<Boolean>()
     val playerRecording = MutableLiveData<Boolean>().apply { value = false }
+    val recordTime = MutableLiveData<String>()
+
+    fun getAllStations(){
+        stationsApi.postValue(AppData.stations)
+    }
+
+    fun getFavoriteStations(){
+        val favorites = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.isFavorite) favorites.add(station)
+        }
+        stationsApi.postValue(favorites)
+    }
+
+    fun getGenreStations(genreId: Int){
+        val genreStations = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.genres.contains(genreId)) genreStations.add(station)
+        }
+        stationsApi.postValue(genreStations)
+    }
+
+    fun getCityStations(cityId: Int){
+        val cityStations = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.cities.contains(cityId)) cityStations.add(station)
+        }
+        stationsApi.postValue(cityStations)
+    }
 
     fun searchStations (query: String){
         val stations = ArrayList<Station>()

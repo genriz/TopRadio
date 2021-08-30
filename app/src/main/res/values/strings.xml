@@ -7,4 +7,6 @@
     <string name="search">Поиск…</string>
     <string name="favorites">Избранное</string>
     <string name="copied">Скопировано</string>
+    <string name="start_record">Запись начата</string>
+    <string name="stop_record">Запись остановлена</string>
 </resources>

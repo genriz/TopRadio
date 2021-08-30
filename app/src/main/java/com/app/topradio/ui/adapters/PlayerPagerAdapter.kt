@@ -1,18 +1,25 @@
 package com.app.topradio.ui.adapters
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.app.topradio.R
 import com.app.topradio.databinding.PlayerPagerItemBinding
+import com.app.topradio.model.Bitrate
 import com.app.topradio.model.Station
 import com.bumptech.glide.Glide
 
 
-class PlayerPagerAdapter(private val listener: OnClick): ListAdapter<Station, StationViewHolder>(StationItemDiffCallback()) {
+class PlayerPagerAdapter(private val context: Context, private val listener: OnClick)
+    : ListAdapter<Station, StationViewHolder>(StationItemDiffCallback()),
+    BitratesListAdapter.OnClickListener {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = PlayerPagerItemBinding.inflate(layoutInflater,parent,false)
@@ -32,7 +39,16 @@ class PlayerPagerAdapter(private val listener: OnClick): ListAdapter<Station, St
             .into(holder.binding.imageView3)
         Glide.with(holder.binding.imageView4).load(R.raw.player_bars_down)
             .into(holder.binding.imageView4)
+        val bitratesAdapter = BitratesListAdapter(this)
+        holder.binding.adapter = bitratesAdapter
+        bitratesAdapter.submitList(station.bitrates)
+        holder.binding.recyclerBitrates.layoutManager = LinearLayoutManager(context,
+            LinearLayoutManager.HORIZONTAL, false)
         holder.binding.executePendingBindings()
+    }
+
+    override fun onBitrateClick(bitrate: Bitrate) {
+        listener.onBitrateClick(bitrate)
     }
 }
 
@@ -48,4 +64,5 @@ class StationViewHolder(val binding: PlayerPagerItemBinding) :
 
 interface OnClick{
     fun onCopyClick(text: String)
+    fun onBitrateClick(bitrate: Bitrate)
 }

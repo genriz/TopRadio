@@ -29,6 +29,13 @@ fun RecyclerView.bindRecyclerViewAdapter(adapter: RecyclerView.Adapter<*>) {
     }
 }
 
+@BindingAdapter(value = ["setAdapterBitrates"])
+fun RecyclerView.setAdapterBitrates(adapter: RecyclerView.Adapter<*>) {
+    this.run {
+        this.adapter = adapter
+    }
+}
+
 @BindingAdapter("setIcon")
 fun setIcon (view: ImageView, path: String){
     Glide.with(view).load("https://top-radio.ru/assets/image/radio/180/$path").into(view)

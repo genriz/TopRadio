@@ -21,6 +21,7 @@ class Station: Serializable {
     var isPlaying = false
     var isViewed = false
     var track = ""
+    var isRecording = false
 }
 
 class Bitrate: Serializable {
@@ -28,4 +29,5 @@ class Bitrate: Serializable {
     var bitrate = 0
     @SerializedName("ur")
     var url = ""
+    var isSelected = false
 }
