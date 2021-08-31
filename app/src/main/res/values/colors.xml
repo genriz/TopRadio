@@ -20,4 +20,5 @@
     <color name="endGradient">#7A14A6</color>
     <color name="bitrate_default">#8B95AF</color>
     <color name="bitrate_selected">#101C3B</color>
+    <color name="red">#EC4141</color>
 </resources>

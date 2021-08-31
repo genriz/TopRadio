@@ -15,5 +15,8 @@
         <item android:icon="@drawable/ic_menu_viewed"
             android:id="@+id/menu_viewed"
             android:title="@string/menu_viewed"/>
+        <item
+            android:id="@+id/menu_records"
+            android:title="@string/menu_records"/>
     </group>
 </menu>

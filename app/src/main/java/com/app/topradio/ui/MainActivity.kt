@@ -40,10 +40,10 @@ import com.app.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import pub.devrel.easypermissions.EasyPermissions
-import kotlin.collections.ArrayList
 
 
-class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick{
+class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick,
+    DialogRecord.OnClick {
 
     val viewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
     lateinit var navController: NavController
@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 bound = true
                 viewModel.station.value = AppData.getStationById(binder.station.id)
                 if (player.isPlaying) {
+                    currentPagePosition = playerStationsAdapter.currentList
+                        .indexOf(viewModel.station.value!!)
                     viewModel.station.value!!.isPlaying = true
                     viewModel.station.value!!.track = binder.station.track
                     viewModel.playerRecording.postValue(binder.station.isRecording)
@@ -72,8 +74,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     viewModel.station.value!!.bitrates = binder.station.bitrates
                     viewModel.station.value = viewModel.station.value
                     viewModel.stationPager.value = viewModel.station.value!!
-                    currentPagePosition = playerStationsAdapter.currentList
-                        .indexOf(viewModel.stationPager.value!!)
                     playerStationsAdapter
                         .notifyItemChanged(currentPagePosition)
                 }
@@ -90,6 +90,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private val playerStateChangedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "player_state_changed") {
+                currentPagePosition = playerStationsAdapter.currentList
+                    .indexOf(viewModel.station.value!!)
                 viewModel.station.value!!.isPlaying =
                     intent.getBooleanExtra("isPlaying", false)
                 if (!viewModel.station.value!!.isPlaying){
@@ -103,18 +105,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     viewModel.playerWaiting.postValue(false)
                 }
                 viewModel.station.value = viewModel.station.value
-                viewModel.stationPager.value = viewModel.station.value!!
-                currentPagePosition = playerStationsAdapter.currentList
-                    .indexOf(viewModel.stationPager.value!!)
+                if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
+                    viewModel.stationPager.value = viewModel.station.value!!
                 playerStationsAdapter
                     .notifyItemChanged(currentPagePosition)
             }
             if (intent?.action == "player_track_name") {
+                currentPagePosition = playerStationsAdapter.currentList
+                    .indexOf(viewModel.station.value!!)
                 viewModel.station.value!!.track = intent.getStringExtra("track_name")?:""
                 viewModel.station.value = viewModel.station.value
-                viewModel.stationPager.value = viewModel.station.value!!
-                currentPagePosition = playerStationsAdapter.currentList
-                    .indexOf(viewModel.stationPager.value!!)
+                if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
+                    viewModel.stationPager.value = viewModel.station.value!!
                 playerStationsAdapter
                     .notifyItemChanged(currentPagePosition)
             }
@@ -165,7 +167,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 R.id.menu_home,
                 R.id.menu_genres,
                 R.id.menu_cities,
-                R.id.menu_viewed
+                R.id.menu_viewed,
+                R.id.menu_records
             ),
             findViewById(R.id.drawerLayout)
         )
@@ -200,6 +203,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.title = getString(R.string.menu_viewed)
                     supportActionBar!!.setIcon(null)
                 }
+                R.id.menu_records -> {
+                    supportActionBar!!.title = getString(R.string.menu_records)
+                    supportActionBar!!.setIcon(null)
+                }
             }
         }
 
@@ -223,6 +230,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(withPager: Boolean){
+
+        viewModel.setViewedStation(this, viewModel.station.value!!)
+
         viewModel.playerWaiting.postValue(true)
 
         binding.playerView.playPause.setOnClickListener {
@@ -349,6 +359,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
                     binding.playerView.playerExpanded.alpha = slideOffset*1.3f
                     binding.playerView.playerMini.alpha = 1 - slideOffset*1.3f
+                    val layoutParams = binding.navHostFragment.layoutParams
+                    layoutParams.height = bottomSheet.top
+                    binding.navHostFragment.layoutParams = layoutParams
+                    binding.navHostFragment.requestLayout()
                 }
 
             })
@@ -400,6 +414,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             viewModel.playerRecording.postValue(false)
             viewModel.recordTime.postValue("")
             service.stopRecord()
+            DialogRecord(this,this).show()
         }
     }
 
@@ -465,7 +480,21 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     override fun onBitrateClick(bitrate: Bitrate) {
         viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
-        service.setBitrate(viewModel.station.value!!.bitrates.indexOf(bitrate))
+        if (viewModel.stationPager.value!!.isPlaying)
+            service.setBitrate(viewModel.station.value!!.bitrates.indexOf(bitrate))
+        else {
+            val position = playerStationsAdapter.currentList
+                .indexOf(viewModel.stationPager.value!!)
+            viewModel.stationPager.value!!.bitrates.forEach {
+                it.isSelected = it.bitrate==bitrate.bitrate
+            }
+            playerStationsAdapter
+                .notifyItemChanged(position)
+        }
+    }
+
+    override fun openFolder() {
+        navController.navigate(R.id.menu_records)
     }
 
 }

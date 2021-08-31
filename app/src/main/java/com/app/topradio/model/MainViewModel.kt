@@ -62,6 +62,14 @@ class MainViewModel: ViewModel() {
         stationsApi.postValue(favorites)
     }
 
+    fun getViewedStations(){
+        val viewed = ArrayList<Station>()
+        AppData.stations.forEach {station->
+            if (station.isViewed) viewed.add(station)
+        }
+        stationsApi.postValue(viewed)
+    }
+
     fun getGenreStations(genreId: Int){
         val genreStations = ArrayList<Station>()
         AppData.stations.forEach {station->
@@ -146,5 +154,18 @@ class MainViewModel: ViewModel() {
             .edit().putStringSet("favorites", favorites).apply()
         AppData.getFavorites(context)
         stationsApi.value = stations.value
+    }
+
+    fun setViewedStation(context: Context, station: Station){
+        AppData.getStationById(station.id).isViewed = true
+        val viewed = HashSet<String>()
+        AppData.stations.forEach {
+            if (it.isViewed){
+                viewed.add(it.id.toString())
+            }
+        }
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .edit().putStringSet("viewed", viewed).apply()
+        AppData.getViewed(context)
     }
 }

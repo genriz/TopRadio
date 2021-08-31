@@ -72,6 +72,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stationPager.value = station
         (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
         (activity as MainActivity).showPlayer(false)
+        if (!station.isViewed){
+            station.isViewed = true
+            (activity as MainActivity).viewModel.updateStation(requireContext(), station)
+        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {

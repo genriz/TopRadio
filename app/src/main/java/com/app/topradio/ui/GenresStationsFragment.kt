@@ -57,11 +57,12 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
+        (activity as MainActivity).viewModel.stationPager.value = station
         (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
         (activity as MainActivity).showPlayer(true)
-        if (!searchView.isIconified) {
-            searchView.onActionViewCollapsed()
-        }
+//        if (!searchView.isIconified) {
+//            searchView.onActionViewCollapsed()
+//        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
@@ -108,7 +109,7 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onDetach() {
-        (activity as MainActivity).viewModel.clearSearchGenres()
+        (activity as MainActivity).viewModel.clearSearchStations()
         super.onDetach()
     }
 }

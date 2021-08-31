@@ -13,6 +13,8 @@ import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.util.AppData
 import com.bumptech.glide.Glide
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 @BindingAdapter(value = ["setAdapter"])
@@ -101,4 +103,12 @@ fun setGenreColor (view: TextView, genre: Genre){
     val color = ColorUtils.blendARGB(startColor, endColor,
         position.toFloat()/AppData.genres.size.toFloat())
     view.setBackgroundColor(color)
+}
+
+@BindingAdapter("setDateText")
+fun setDateText (view: TextView, name: String){
+    val timeTxt = name.substringAfterLast("_").substringBefore(".")
+    val date = SimpleDateFormat("dd.MM.yy HH:mm", Locale.getDefault())
+        .format(timeTxt.toLong())
+    view.text = date
 }

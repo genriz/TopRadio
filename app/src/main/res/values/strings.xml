@@ -4,9 +4,14 @@
     <string name="menu_genres">Жанры</string>
     <string name="menu_cities">Города</string>
     <string name="menu_viewed">Просмотренные</string>
+    <string name="menu_records">Записи</string>
     <string name="search">Поиск…</string>
     <string name="favorites">Избранное</string>
     <string name="copied">Скопировано</string>
     <string name="start_record">Запись начата</string>
-    <string name="stop_record">Запись остановлена</string>
+    <string name="stop_record">Запись завершена</string>
+    <string name="stop_record_info">Запись успешно завершена, для прослушивания откройте в файловом менеджере папку:</string>
+    <string name="stop_record_info2">или перейдите в Записи</string>
+    <string name="open">Перейти</string>
+    <string name="close">Закрыть</string>
 </resources>

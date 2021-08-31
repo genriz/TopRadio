@@ -32,4 +32,8 @@
         android:name="com.app.topradio.ui.ViewedFragment"
         android:id="@+id/menu_viewed">
     </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.RecordsFragment"
+        android:id="@+id/menu_records">
+    </fragment>
 </navigation>

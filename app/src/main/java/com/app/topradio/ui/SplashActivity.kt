@@ -40,6 +40,7 @@ class SplashActivity : AppCompatActivity() {
                                 AppData.cities.clear()
                                 AppData.cities.addAll(response3.body()!!)
                                 AppData.getFavorites(this@SplashActivity)
+                                AppData.getViewed(this@SplashActivity)
                                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                                 finish()
                             }

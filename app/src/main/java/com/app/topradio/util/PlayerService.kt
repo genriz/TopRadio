@@ -55,6 +55,13 @@ class PlayerService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getBundleExtra("bundle")?.let{
             station = it.getSerializable("station") as Station
+            bitrateIndex = 0
+            station.bitrates.forEach { br ->
+                if (br.isSelected) {
+                    bitrateIndex = station.bitrates.indexOf(br)
+                    return@forEach
+                }
+            }
             player.addMetadataOutput { metadata ->
                 for (n in 0 until metadata.length()) {
                     when (val md = metadata[n]) {
@@ -83,6 +90,7 @@ class PlayerService: Service() {
                                 .sendBroadcast(Intent("player_stop_record"))
                         }
                     } else {
+                        station.bitrates.forEach {bitrate -> bitrate.isSelected = false }
                         station.bitrates[bitrateIndex].isSelected = true
                         stopped = false
                     }
@@ -169,7 +177,6 @@ class PlayerService: Service() {
                 setUsePreviousAction(false)
             }
             player.playWhenReady = true
-            if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
             player.setMediaItem(
                 MediaItem.Builder()
                     .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
@@ -238,8 +245,10 @@ class PlayerService: Service() {
     fun stopRecord(){
         handler.removeCallbacksAndMessages(null)
         station.isRecording = false
-        fileOutputStream.close()
-        Toast.makeText(this@PlayerService, R.string.stop_record, Toast.LENGTH_SHORT).show()
+        try {
+            fileOutputStream.close()
+        } catch (e:java.lang.Exception){e.printStackTrace()}
+        //Toast.makeText(this@PlayerService, R.string.stop_record, Toast.LENGTH_SHORT).show()
     }
 
     fun setBitrate(index: Int){
