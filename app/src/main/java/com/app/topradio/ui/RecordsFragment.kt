@@ -13,6 +13,7 @@ import com.app.topradio.R
 import com.app.topradio.databinding.FragmentRecordsBinding
 import com.app.topradio.model.Record
 import com.app.topradio.ui.adapters.RecordsListAdapter
+import com.app.topradio.util.AppData
 import java.io.File
 
 class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
@@ -39,12 +40,20 @@ class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
             if (it){
                 val records = ArrayList<Record>()
                 folder.listFiles()?.forEach { file ->
+                    var icon = ""
+                    AppData.stations.forEach { station ->
+                        if (station.name==file.name.substringBeforeLast("_"))
+                            icon = station.icon
+                    }
                     val record = Record().apply {
                         id = records.size
                         name = file.name
+                        logo = icon
+                        date = (file.name.substringAfterLast("_").substringBefore(".")).toLong()
                     }
                     records.add(record)
                 }
+                records.sortByDescending {record -> record.date }
                 binding.adapter!!.submitList(records)
             }
         }

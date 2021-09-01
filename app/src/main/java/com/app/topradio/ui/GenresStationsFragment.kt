@@ -22,7 +22,9 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_genres_stations, container, false)
-        binding.adapter = StationsListAdapter(this)
+        binding.adapter = StationsListAdapter(this).apply {
+            submitList(ArrayList<Station>())
+        }
         binding.lifecycleOwner = this
         return binding.root
     }
@@ -41,6 +43,7 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
+                (activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -110,6 +113,7 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onDetach() {
         (activity as MainActivity).viewModel.clearSearchStations()
+        (activity as MainActivity).updatePlayerPager()
         super.onDetach()
     }
 }

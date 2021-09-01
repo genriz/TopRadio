@@ -17,6 +17,8 @@ import kotlin.collections.HashSet
 class MainViewModel: ViewModel() {
     val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
+    val stationsFavoritesApp = MutableLiveData<ArrayList<Station>>()
+    val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
 
     val station = MutableLiveData<Station>().apply { value = Station() }
     val stationPager = MutableLiveData<Station>().apply { value = Station() }
@@ -29,6 +31,7 @@ class MainViewModel: ViewModel() {
             }
             genre.count = count
         }
+        AppData.genres.sortByDescending { it.count }
         value = AppData.genres
     }
     val genres: LiveData<ArrayList<Genre>> = genresApi
@@ -41,6 +44,7 @@ class MainViewModel: ViewModel() {
             }
             city.count = count
         }
+        AppData.cities.sortByDescending { it.count }
         value = AppData.cities
     }
     val cities: LiveData<ArrayList<City>> = citiesApi
@@ -59,7 +63,7 @@ class MainViewModel: ViewModel() {
         AppData.stations.forEach {station->
             if (station.isFavorite) favorites.add(station)
         }
-        stationsApi.postValue(favorites)
+        stationsFavoritesApp.postValue(favorites)
     }
 
     fun getViewedStations(){
@@ -103,11 +107,15 @@ class MainViewModel: ViewModel() {
                 stations.add(it)
         }
         stations.sortBy { it.position }
-        stationsApi.postValue(stations)
+        stationsFavoritesApp.postValue(stations)
     }
 
     fun clearSearchStations (){
         stationsApi.postValue(AppData.stations)
+    }
+
+    fun clearSearchStationsFavorites (){
+        stationsFavoritesApp.postValue(AppData.stations)
     }
 
     fun searchGenres (query: String){

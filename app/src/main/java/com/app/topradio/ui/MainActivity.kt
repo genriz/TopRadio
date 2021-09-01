@@ -232,7 +232,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(withPager: Boolean){
 
-        viewModel.setViewedStation(this, viewModel.station.value!!)
+        if (!viewModel.station.value!!.isViewed)
+            viewModel.setViewedStation(this, viewModel.station.value!!)
 
         viewModel.playerWaiting.postValue(true)
 

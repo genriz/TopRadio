@@ -25,7 +25,9 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_city_stations, container, false)
-        binding.adapter = StationsListAdapter(this)
+        binding.adapter = StationsListAdapter(this).apply {
+            submitList(ArrayList<Station>())
+        }
         binding.lifecycleOwner = this
         return binding.root
     }
@@ -44,6 +46,7 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
+                (activity as MainActivity).updatePlayerPager()
             }
         })
 

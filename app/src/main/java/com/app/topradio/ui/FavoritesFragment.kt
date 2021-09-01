@@ -24,7 +24,9 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_favorites, container, false)
-        binding.adapter = StationsListAdapter(this)
+        binding.adapter = StationsListAdapter(this).apply {
+            submitList(ArrayList<Station>())
+        }
         binding.lifecycleOwner = this
         return binding.root
     }
@@ -34,7 +36,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
         setHasOptionsMenu(true)
 
-        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
+        (activity as MainActivity).viewModel.stationsFavorites.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
             }
@@ -84,13 +86,13 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
                     if (newText.length>2)
                         (activity as MainActivity).viewModel.searchFavoritesStations(newText)
                     else if (newText.isEmpty())
-                        (activity as MainActivity).viewModel.clearSearchStations()
+                        (activity as MainActivity).viewModel.clearSearchStationsFavorites()
                     return true
                 }
 
             })
             setOnCloseListener {
-                (activity as MainActivity).viewModel.clearSearchStations()
+                (activity as MainActivity).viewModel.clearSearchStationsFavorites()
                 onActionViewCollapsed()
                 true
             }
@@ -101,8 +103,14 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
         if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity).onBackPressed()
         if (item.itemId==android.R.id.home) {
             searchView.onActionViewCollapsed()
-            (activity as MainActivity).viewModel.clearSearchStations()
+            (activity as MainActivity).viewModel.clearSearchStationsFavorites()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDetach() {
+        (activity as MainActivity).viewModel.clearSearchStationsFavorites()
+        (activity as MainActivity).updatePlayerPager()
+        super.onDetach()
     }
 }

@@ -22,7 +22,9 @@ class ViewedFragment: Fragment(),
         container: ViewGroup?,
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_viewed, container, false)
-        binding.adapter = StationsListAdapter(this)
+        binding.adapter = StationsListAdapter(this).apply {
+            submitList(ArrayList<Station>())
+        }
         binding.lifecycleOwner = this
         return binding.root
     }
@@ -35,6 +37,7 @@ class ViewedFragment: Fragment(),
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
+                (activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -92,7 +95,7 @@ class ViewedFragment: Fragment(),
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId==android.R.id.home) {
             searchView.onActionViewCollapsed()
-            (activity as MainActivity).viewModel.clearSearchCities()
+            (activity as MainActivity).viewModel.clearSearchStations()
         }
         if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
             .navController.navigate(R.id.favorites)
@@ -100,7 +103,7 @@ class ViewedFragment: Fragment(),
     }
 
     override fun onDetach() {
-        (activity as MainActivity).viewModel.clearSearchCities()
+        (activity as MainActivity).viewModel.clearSearchStations()
         super.onDetach()
     }
 }
