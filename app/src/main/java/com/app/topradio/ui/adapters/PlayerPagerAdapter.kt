@@ -30,9 +30,8 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
     override fun onBindViewHolder(holder: StationViewHolder, position: Int){
         val station = getItem(position)
         holder.binding.station = station
-        holder.binding.trackNameExpanded.setOnTouchListener { _, _ ->
+        holder.binding.trackNameExpanded.setOnClickListener {
             listener.onCopyClick(station.track)
-            false
         }
         holder.binding.trackNameExpanded.isSelected = true
         Glide.with(holder.binding.imageView3).load(R.raw.player_bars_up)
@@ -44,7 +43,6 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         bitratesAdapter.submitList(station.bitrates)
         holder.binding.recyclerBitrates.layoutManager = LinearLayoutManager(context,
             LinearLayoutManager.HORIZONTAL, false)
-        holder.binding.recyclerBitrates.isNestedScrollingEnabled = false
         holder.binding.executePendingBindings()
     }
 

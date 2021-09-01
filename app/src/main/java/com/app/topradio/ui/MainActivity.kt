@@ -28,6 +28,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI.navigateUp
 import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.app.topradio.R
 import com.app.topradio.databinding.ActivityMainBinding
@@ -41,6 +42,7 @@ import com.app.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import pub.devrel.easypermissions.EasyPermissions
+import java.lang.Exception
 
 
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick,
@@ -227,6 +229,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
         bindService(Intent(this, PlayerService::class.java),
             serviceConnection, Context.BIND_AUTO_CREATE)
+
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -297,6 +300,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         if (withPager) {
             playerStationsAdapter.submitList(viewModel.stations.value!!)
             viewModel.stationPager.value = viewModel.stations.value!![currentPagePosition]
+            val recycler = binding.playerView.playerPager.getRecycler()
+            recycler?.let{view ->
+                view.isNestedScrollingEnabled = false
+            }
             binding.playerView.playerPager
                 .setCurrentItem(currentPagePosition, false)
             binding.playerView.playerPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
@@ -368,6 +375,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 }
 
             })
+    }
+
+    fun ViewPager2.getRecycler(): RecyclerView?{
+        try{
+            val field = ViewPager2::class.java.getDeclaredField("mRecyclerView")
+            field.isAccessible = true
+            return field.get(this) as RecyclerView
+        }catch (e:Exception){e.printStackTrace()}
+        return null
     }
 
     fun updatePlayerPager(){
