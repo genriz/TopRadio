@@ -16,7 +16,7 @@
         android:layout_height="match_parent"
         app:behavior_hideable="true"
         app:behavior_peekHeight="100dp"
-        android:background="@color/white"
+        android:background="@color/back_main_container"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -37,7 +37,7 @@
                 android:layout_marginBottom="17dp"
                 android:layout_marginStart="25dp"
                 android:elevation="10dp"
-                android:background="@color/white"
+                android:background="@color/back_main_container"
                 app:cardCornerRadius="8dp"
                 android:id="@+id/iconCard">
                 <ImageView
@@ -105,7 +105,7 @@
                 app:layout_constraintEnd_toEndOf="@id/playPause"
                 app:layout_constraintBottom_toBottomOf="@id/playPause"
                 app:layout_constraintStart_toStartOf="@id/playPause"
-                android:indeterminateTint="@color/back_main"
+                android:indeterminateTint="@color/play_waiting"
                 android:visibility="@{viewModel.playerWaiting?View.VISIBLE:View.GONE}"
                 android:layout_marginTop="-12dp"
                 android:layout_marginBottom="-12dp"
@@ -133,13 +133,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/playerExpanded"
-            android:background="@color/white">
+            android:background="@color/back_main_container">
             <RelativeLayout
                 android:id="@+id/toolbarPlayer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
-                android:onClick="toMiniPlayer">
+                android:onClick="toMiniPlayer"
+                android:paddingTop="12dp">
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -224,7 +225,7 @@
                 app:layout_constraintEnd_toEndOf="@id/playPauseExtended"
                 app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
                 app:layout_constraintStart_toStartOf="@id/playPauseExtended"
-                android:indeterminateTint="@color/back_main"
+                android:indeterminateTint="@color/play_waiting"
                 android:visibility="@{viewModel.playerWaiting?View.VISIBLE:View.GONE}"
                 android:layout_marginTop="-22dp"
                 android:layout_marginBottom="-22dp"

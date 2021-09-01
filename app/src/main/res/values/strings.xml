@@ -8,7 +8,7 @@
     <string name="search">Поиск…</string>
     <string name="favorites">Избранное</string>
     <string name="copied">Скопировано</string>
-    <string name="start_record">Запись начата</string>
+    <string name="start_record">Запись началась</string>
     <string name="stop_record">Запись завершена</string>
     <string name="stop_record_info">Запись успешно завершена, для прослушивания откройте в файловом менеджере папку:</string>
     <string name="stop_record_info2">или перейдите в Записи</string>

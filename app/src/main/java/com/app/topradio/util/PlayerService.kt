@@ -102,14 +102,15 @@ class PlayerService: Service() {
 
                 override fun onPlayerError(error: PlaybackException) {
                     super.onPlayerError(error)
+                    bitrateIndex++
                     if (bitrateIndex<station.bitrates.size){
-                        bitrateIndex++
                         player.setMediaItem(
                             MediaItem.Builder()
                                 .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
                                 .build())
                         player.prepare()
                     } else {
+                        bitrateIndex = 0
                         LocalBroadcastManager.getInstance(this@PlayerService)
                             .sendBroadcast(Intent("player_state_changed").apply {
                                 putExtra("isPlaying", false)

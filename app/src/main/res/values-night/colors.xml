@@ -10,16 +10,16 @@
 
     <color name="back_main">#0F1E45</color>
     <color name="back_main_trans">#2A0F1E45</color>
-    <color name="stations_list">#1E2B4D</color>
-    <color name="back_main_container">#FFFFFF</color>
+    <color name="stations_list">#FFFFFF</color>
+    <color name="back_main_container">#0D1834</color>
     <color name="menu_selected">#6C7BA4</color>
     <color name="menu_default">#CDD6EC</color>
-    <color name="divider">#F3F4F5</color>
-    <color name="small_player_back">#EBEEF6</color>
+    <color name="divider">#1E2B4D</color>
+    <color name="small_player_back">#0F1E45</color>
     <color name="startGradient">#46A614</color>
     <color name="endGradient">#7A14A6</color>
-    <color name="bitrate_default">#8B95AF</color>
-    <color name="bitrate_selected">#101C3B</color>
+    <color name="bitrate_default">#0D1834</color>
+    <color name="bitrate_selected">#1E2B4D</color>
     <color name="red">#EC4141</color>
-    <color name="play_waiting">#0F1E45</color>
+    <color name="play_waiting">#FFFFFF</color>
 </resources>

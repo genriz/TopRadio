@@ -20,7 +20,7 @@
             android:textSize="12sp"
             android:id="@+id/recordsInfo"
             app:layout_constraintTop_toTopOf="parent"
-            android:background="@color/stations_list"/>
+            android:background="@color/back_main"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/stationsList"

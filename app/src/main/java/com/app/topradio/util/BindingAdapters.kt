@@ -1,6 +1,5 @@
-package com.app.topradio.main
+package com.app.topradio.util
 
-import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -11,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
-import com.app.topradio.util.AppData
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.*
@@ -45,42 +43,62 @@ fun setIcon (view: ImageView, path: String){
 
 @BindingAdapter("setFavorite")
 fun setFavorite (view: ImageView, favorite: Boolean){
-    if (favorite) Glide.with(view).load(R.drawable.ic_favorite_on)
-        .placeholder(R.drawable.ic_favorite_off).into(view)
-    else Glide.with(view).load(R.drawable.ic_favorite_off)
-        .placeholder(R.drawable.ic_favorite_off).into(view)
+    if (favorite) Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_on))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
+        .into(view)
+    else Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
+        .into(view)
 }
 
 @BindingAdapter("setFavoritePlayer")
 fun setFavoritePlayer (view: ImageView, favorite: Boolean){
-    if (favorite) Glide.with(view).load(R.drawable.ic_favorite_on)
-        .placeholder(R.drawable.ic_favorite_off).into(view)
-    else Glide.with(view).load(R.drawable.ic_favorite_off_player)
-        .placeholder(R.drawable.ic_favorite_off).into(view)
+    if (favorite) Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_on))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
+        .into(view)
+    else Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off_player))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
+        .into(view)
 }
 
 @BindingAdapter("setPlayingIcon")
 fun setPlayingIcon (view: ImageView, isPlaying: Boolean){
-    if (isPlaying) Glide.with(view).load(R.drawable.ic_pause)
-        .placeholder(R.drawable.ic_play).into(view)
-    else Glide.with(view).load(R.drawable.ic_play)
-        .placeholder(R.drawable.ic_play).into(view)
+    if (isPlaying) Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_pause))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_play))
+        .into(view)
+    else Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_play))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_play))
+        .into(view)
 }
 
 @BindingAdapter("setPlayingIconExtended")
 fun setPlayingIconExtended (view: ImageView, isPlaying: Boolean){
-    if (isPlaying) Glide.with(view).load(R.drawable.ic_pause_extended)
-        .placeholder(R.drawable.ic_play_extended).into(view)
-    else Glide.with(view).load(R.drawable.ic_play_extended)
-        .placeholder(R.drawable.ic_play_extended).into(view)
+    if (isPlaying) Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_pause_extended))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_play_extended))
+        .into(view)
+    else Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_play_extended))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_play_extended))
+        .into(view)
 }
 
 @BindingAdapter("setRecordingIconExtended")
 fun setRecordingIconExtended (view: ImageView, isRecording: Boolean){
-    if (isRecording) Glide.with(view).load(R.drawable.ic_record_on)
-        .placeholder(R.drawable.ic_record_off).into(view)
-    else Glide.with(view).load(R.drawable.ic_record_off)
-        .placeholder(R.drawable.ic_record_off).into(view)
+    if (isRecording) Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_record_on))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_record_off))
+        .into(view)
+    else Glide.with(view)
+        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_record_off))
+        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_record_off))
+        .into(view)
 }
 
 @BindingAdapter("setCityColor")
