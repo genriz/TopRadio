@@ -14,4 +14,11 @@
     <string name="stop_record_info2">или перейдите в Записи</string>
     <string name="open">Перейти</string>
     <string name="close">Закрыть</string>
+    <string name="menu_alarm">Установить будильник</string>
+    <string name="menu_add_station">Предложить радиостанцию</string>
+    <string name="menu_feedback">Оставить отзыв</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="menu_exit">Выход</string>
+    <string name="theme">Тёмная тема</string>
+
 </resources>

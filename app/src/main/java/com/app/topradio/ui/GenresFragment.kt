@@ -72,6 +72,8 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
             .navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_menu)
+            (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)
     }
 

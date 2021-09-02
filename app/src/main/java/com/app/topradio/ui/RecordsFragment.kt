@@ -3,9 +3,8 @@ package com.app.topradio.ui
 import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -31,6 +30,8 @@ class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setHasOptionsMenu(true)
 
         val path = Environment.getExternalStorageDirectory().path + "/TopRadio"
         binding.recordsInfo.text = path
@@ -72,5 +73,18 @@ class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
 
     override fun onRecordClick(record: Record) {
         openFile(record.name)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.main_menu, menu)
+        menu.findItem(R.id.app_bar_search).isVisible = false
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
+            .navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_menu)
+            (activity as MainActivity).showMenuDialog()
+        return super.onOptionsItemSelected(item)
     }
 }

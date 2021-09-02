@@ -72,10 +72,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stationPager.value = station
         (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
         (activity as MainActivity).showPlayer(true)
-//        if (!station.isViewed){
-//            station.isViewed = true
-//            (activity as MainActivity).viewModel.updateStation(requireContext(), station)
-//        }
+        if (!station.isViewed){
+            station.isViewed = true
+            (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
+        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
@@ -112,8 +112,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
-            .navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_favorite)
+            (activity as MainActivity).navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_menu)
+            (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)
     }
 }

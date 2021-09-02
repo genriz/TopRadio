@@ -10,6 +10,7 @@
             type="Integer" />
         <import type="android.view.View"/>
     </data>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/playerView"
         android:layout_width="match_parent"

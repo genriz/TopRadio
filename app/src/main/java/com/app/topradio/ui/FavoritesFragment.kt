@@ -105,6 +105,8 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
             searchView.onActionViewCollapsed()
             (activity as MainActivity).viewModel.clearSearchStationsFavorites()
         }
+        if (item.itemId==R.id.app_bar_menu)
+            (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)
     }
 

@@ -49,4 +49,13 @@ object AppData {
         }
         return position
     }
+
+    fun getThemeDarkSetting(context: Context):Boolean{
+        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getBoolean("themeDark", false)
+    }
+    fun setThemeDarkSetting(context: Context, enabled: Boolean) {
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putBoolean("themeDark", enabled).apply()
+    }
 }

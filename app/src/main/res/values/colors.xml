@@ -23,4 +23,8 @@
     <color name="bitrate_selected">#101C3B</color>
     <color name="red">#EC4141</color>
     <color name="play_waiting">#0F1E45</color>
+    <color name="top_menu_back">@color/back_main_container</color>
+    <color name="setting_subtitle">#B3BACE</color>
+    <color name="switch_on">#3CDC86</color>
+    <color name="switch_off">#B3BACE</color>
 </resources>

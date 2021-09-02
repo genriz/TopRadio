@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -46,7 +47,7 @@ import java.lang.Exception
 
 
 class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, OnClick,
-    DialogRecord.OnClick {
+    DialogRecord.OnClick, DialogMenu.OnDialogMenuClick {
 
     val viewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
     lateinit var navController: NavController
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private val playerStationsAdapter = PlayerPagerAdapter(this, this)
     private var currentPagePosition = 0
     private val android11StorageRequest = 3434
+    private val dialogMenu by lazy { DialogMenu(this, this) }
 
     private val serviceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, iBinder: IBinder) {
@@ -210,6 +212,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.title = getString(R.string.menu_records)
                     supportActionBar!!.setIcon(null)
                 }
+                R.id.menu_settings -> {
+                    supportActionBar!!.title = getString(R.string.menu_settings)
+                    supportActionBar!!.setIcon(null)
+                }
             }
         }
 
@@ -260,7 +266,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 currentPagePosition = playerStationsAdapter.currentList
                     .indexOf(viewModel.stationPager.value!!)
                 viewModel.station.value = viewModel.stationPager.value
-                showPlayer(withPager)
+                playStation()
             }
 
         }
@@ -300,18 +306,16 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         if (withPager) {
             playerStationsAdapter.submitList(viewModel.stations.value!!)
             viewModel.stationPager.value = viewModel.stations.value!![currentPagePosition]
-            val recycler = binding.playerView.playerPager.getRecycler()
-            recycler?.let{view ->
-                view.isNestedScrollingEnabled = false
-            }
+//            val recycler = binding.playerView.playerPager.getRecycler()
+//            recycler?.let{view ->
+//                view.isNestedScrollingEnabled = false
+//            }
             binding.playerView.playerPager
                 .setCurrentItem(currentPagePosition, false)
             binding.playerView.playerPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
                 override fun onPageSelected(position: Int) {
                     super.onPageSelected(position)
                     viewModel.stationPager.value = playerStationsAdapter.currentList[position]
-//                    playerStationsAdapter
-//                        .notifyItemChanged(position)
                 }
             })
         } else {
@@ -320,19 +324,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             playerStationsAdapter.submitList(list)
         }
 
-        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
-
-        if (!bound){
-            val intent = Intent(this, PlayerService::class.java)
-            val serviceBundle = Bundle()
-            serviceBundle.putSerializable("station", viewModel.station.value!!)
-            intent.putExtra("bundle", serviceBundle)
-            startService(intent)
-            stopRecord()
-        } else {
-            viewModel.playerWaiting.postValue(false)
-            bound = false
-        }
+        playStation()
 
         BottomSheetBehavior.from(binding.playerView.root)
             .addBottomSheetCallback(object:BottomSheetBehavior.BottomSheetCallback(){
@@ -359,8 +351,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                             hideKeyboard()
                         }
                         BottomSheetBehavior.STATE_DRAGGING -> {
-                            binding.playerView.playerExpanded.visibility = View.VISIBLE
-                            binding.playerView.playerMini.visibility = View.VISIBLE
+                            if (!binding.playerView.playerExpanded.isVisible&&
+                                !binding.playerView.playerMini.isVisible) {
+                                binding.playerView.playerExpanded.visibility = View.VISIBLE
+                                binding.playerView.playerMini.visibility = View.VISIBLE
+                            }
                         }
                     }
                 }
@@ -375,6 +370,23 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 }
 
             })
+
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
+
+    }
+
+    private fun playStation(){
+        if (!bound){
+            val intent = Intent(this, PlayerService::class.java)
+            val serviceBundle = Bundle()
+            serviceBundle.putSerializable("station", viewModel.station.value!!)
+            intent.putExtra("bundle", serviceBundle)
+            startService(intent)
+            stopRecord()
+        } else {
+            viewModel.playerWaiting.postValue(false)
+            bound = false
+        }
     }
 
     fun ViewPager2.getRecycler(): RecyclerView?{
@@ -476,13 +488,15 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     override fun onBackPressed() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START))
             binding.drawerLayout.closeDrawer(GravityCompat.START)
-        if (BottomSheetBehavior.from(binding.playerView.root).state
-            == BottomSheetBehavior.STATE_EXPANDED) {
-            binding.playerView.playerMini.visibility = View.VISIBLE
-            BottomSheetBehavior.from(binding.playerView.root).state =
-                BottomSheetBehavior.STATE_COLLAPSED
+        else {
+            if (BottomSheetBehavior.from(binding.playerView.root).state
+                == BottomSheetBehavior.STATE_EXPANDED) {
+                binding.playerView.playerMini.visibility = View.VISIBLE
+                BottomSheetBehavior.from(binding.playerView.root).state =
+                    BottomSheetBehavior.STATE_COLLAPSED
+            } else if (dialogMenu.isShowing) dialogMenu.dismiss()
+            else super.onBackPressed()
         }
-        else super.onBackPressed()
     }
 
     fun toMiniPlayer(view: View) {
@@ -513,6 +527,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     override fun openFolder() {
         navController.navigate(R.id.menu_records)
+    }
+
+    fun showMenuDialog(){
+        dialogMenu.show()
+    }
+
+    override fun onMenuPositionClick(position: Int) {
+        when (position){
+            3 -> navController.navigate(R.id.menu_settings)
+            4 -> finish()
+        }
     }
 
 }

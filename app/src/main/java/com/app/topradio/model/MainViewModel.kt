@@ -176,4 +176,5 @@ class MainViewModel: ViewModel() {
             .edit().putStringSet("viewed", viewed).apply()
         AppData.getViewed(context)
     }
+
 }
