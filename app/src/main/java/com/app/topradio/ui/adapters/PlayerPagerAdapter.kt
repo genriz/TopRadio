@@ -46,8 +46,8 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         holder.binding.executePendingBindings()
     }
 
-    override fun onBitrateClick(bitrate: Bitrate) {
-        listener.onBitrateClick(bitrate)
+    override fun onBitrateClick(position: Int) {
+        listener.onBitrateClick(position)
     }
 }
 
@@ -63,5 +63,5 @@ class StationViewHolder(val binding: PlayerPagerItemBinding) :
 
 interface OnClick{
     fun onCopyClick(text: String)
-    fun onBitrateClick(bitrate: Bitrate)
+    fun onBitrateClick(position: Int)
 }

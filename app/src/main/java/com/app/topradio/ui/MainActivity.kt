@@ -97,8 +97,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                         viewModel.playerWaiting.value = false
                     }
                 } else {
-                    if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
+                    if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id) {
                         viewModel.stationPager.value = viewModel.station.value
+                        playerStationsAdapter
+                            .notifyItemChanged(viewModel.getStationPosition(viewModel.stationPager.value!!))
+                    }
                     viewModel.playerWaiting.value = false
                 }
             }
@@ -325,12 +328,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(withPager: Boolean){
         val position = viewModel.getStationPosition(viewModel.stationPager.value!!)
+        Log.v("DASD","$position ${viewModel.stationPager.value!!.isPlaying}")
         BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
         binding.playerView.playerExpanded.visibility = View.VISIBLE
         playerStationsAdapter.submitList(viewModel.stations.value!!)
         binding.playerView.playerPager.postDelayed({
             binding.playerView.playerPager
                 .setCurrentItem(position, false)
+            playerStationsAdapter.notifyItemChanged(position)
         },100)
         if (AppData.getSettingBoolean(this,"autoplay")) {
             viewModel.station.value = viewModel.stationPager.value
@@ -372,6 +377,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     fun updatePlayerPager(){
         playerStationsAdapter.submitList(ArrayList<Station>()
             .apply { add (viewModel.station.value!!) })
+        playerStationsAdapter.notifyItemChanged(0)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -482,18 +488,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onBitrateClick(bitrate: Bitrate) {
-        viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
-        if (viewModel.stationPager.value!!.isPlaying)
-            service.setBitrate(viewModel.station.value!!.bitrates.indexOf(bitrate))
-        else {
-            val position = playerStationsAdapter.currentList
+    override fun onBitrateClick(position: Int) {
+        if (viewModel.stationPager.value!!.isPlaying) {
+            service.setBitrate(position)
+            viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
+        } else {
+            val positionPager = playerStationsAdapter.currentList
                 .indexOf(viewModel.stationPager.value!!)
             viewModel.stationPager.value!!.bitrates.forEach {
-                it.isSelected = it.bitrate==bitrate.bitrate
+                it.isSelected = false
             }
+            viewModel.stationPager.value!!.bitrates[position].isSelected = true
             playerStationsAdapter
-                .notifyItemChanged(position)
+                .notifyItemChanged(positionPager)
         }
     }
 

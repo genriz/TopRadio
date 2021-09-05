@@ -21,7 +21,7 @@ class MainViewModel: ViewModel() {
     val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
 
     val station = MutableLiveData<Station>().apply { value = Station() }
-    val stationPager = MutableLiveData<Station>()
+    val stationPager = MutableLiveData<Station>().apply { value = Station() }
 
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
         AppData.genres.forEach { genre ->

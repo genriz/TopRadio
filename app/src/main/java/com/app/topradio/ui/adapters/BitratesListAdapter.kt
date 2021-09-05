@@ -34,11 +34,11 @@ class BitratesListAdapter(private val listener: OnClickListener):
         holder.binding.bitrateText.isSelected = bitrate.isSelected
         holder.binding.executePendingBindings()
         holder.binding.root.setOnClickListener {
-            listener.onBitrateClick(bitrate)
+            listener.onBitrateClick(position)
         }
     }
 
     interface OnClickListener{
-        fun onBitrateClick(bitrate: Bitrate)
+        fun onBitrateClick(position: Int)
     }
 }
