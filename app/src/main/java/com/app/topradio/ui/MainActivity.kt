@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.content.ClipData
+import android.content.res.Configuration
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.*
@@ -312,10 +313,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
                     binding.playerView.playerExpanded.alpha = slideOffset
                     binding.playerView.playerMini.alpha = 1 - slideOffset
-                    val layoutParams = binding.navHostFragment.layoutParams
-                    layoutParams.height = bottomSheet.top
-                    binding.navHostFragment.layoutParams = layoutParams
-                    binding.navHostFragment.requestLayout()
+                    val currentHeight = binding.navHostFragment.height - bottomSheet.height
+                    val bottomSheetShiftDown = currentHeight - bottomSheet.top
+                    binding.navHostFragment.setPadding(0, 0, 0,
+                        (bottomSheet.height + bottomSheetShiftDown))
                 }
 
             })
