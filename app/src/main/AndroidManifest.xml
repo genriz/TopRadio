@@ -30,7 +30,6 @@
             android:name=".ui.MainActivity"
             android:configChanges="orientation|screenSize">
         </activity>
-        <activity android:name=".ui.StationActivity" />
         <service android:name=".util.PlayerService" />
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -15,6 +15,24 @@ object AppData {
     val genres = ArrayList<Genre>()
     var favorites = HashSet<String>()
     var viewed = HashSet<String>()
+    val bufferSizes = ArrayList<Int>().apply {
+        add(500)
+        add(5000)
+        add(15000)
+    }
+    val timerValues = ArrayList<Int>().apply {
+        add(0)
+        add(10)
+        add(20)
+        add(30)
+        add(40)
+        add(50)
+        add(60)
+        add(70)
+        add(80)
+        add(90)
+        add(100)
+    }
 
     fun getFavorites(context: Context){
         favorites.clear()
@@ -50,12 +68,20 @@ object AppData {
         return position
     }
 
-    fun getThemeDarkSetting(context: Context):Boolean{
+    fun getSettingBoolean(context: Context, setting: String):Boolean{
         return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .getBoolean("themeDark", false)
+            .getBoolean(setting, false)
     }
-    fun setThemeDarkSetting(context: Context, enabled: Boolean) {
+    fun setSettingBoolean(context: Context, setting: String, enabled: Boolean) {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
-            .putBoolean("themeDark", enabled).apply()
+            .putBoolean(setting, enabled).apply()
+    }
+    fun getSettingInt(context: Context, setting: String):Int{
+        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getInt(setting, 0)
+    }
+    fun setSettingInt(context: Context, setting: String, value: Int) {
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putInt(setting, value).apply()
     }
 }

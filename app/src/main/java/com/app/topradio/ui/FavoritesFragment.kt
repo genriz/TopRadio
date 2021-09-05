@@ -1,9 +1,7 @@
 package com.app.topradio.ui
 
-import android.app.Activity
 import android.os.Bundle
 import android.view.*
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -11,7 +9,6 @@ import com.app.topradio.R
 import com.app.topradio.databinding.FragmentFavoritesBinding
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
-import com.app.topradio.util.AppData
 
 class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
@@ -39,6 +36,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stationsFavorites.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
+                (activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -60,8 +58,11 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
-        (activity as MainActivity).viewModel.station.value = station
-        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
+        if (!station.isViewed){
+            station.isViewed = true
+            (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
+        }
+        (activity as MainActivity).viewModel.stationPager.value = station
         (activity as MainActivity).showPlayer(true)
     }
 
@@ -69,7 +70,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
         (activity as MainActivity).viewModel.stations.value!!.remove(station)
-        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
+        (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

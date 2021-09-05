@@ -20,5 +20,13 @@
     <string name="menu_settings">Настройки</string>
     <string name="menu_exit">Выход</string>
     <string name="theme">Тёмная тема</string>
-
+    <string name="auto_play">Автовоспроизведение</string>
+    <string name="headphone">Пауза при отключении гарнитуры</string>
+    <string name="reconnect">Переподключаться</string>
+    <string name="timer">Таймер сна</string>
+    <string name="buffer">Размер буфера</string>
+    <string name="ms">мс</string>
+    <string name="sec">сек</string>
+    <string name="min">мин</string>
+    <string name="off">выключен</string>
 </resources>

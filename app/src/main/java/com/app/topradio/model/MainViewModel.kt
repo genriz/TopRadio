@@ -21,7 +21,7 @@ class MainViewModel: ViewModel() {
     val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
 
     val station = MutableLiveData<Station>().apply { value = Station() }
-    val stationPager = MutableLiveData<Station>().apply { value = Station() }
+    val stationPager = MutableLiveData<Station>()
 
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
         AppData.genres.forEach { genre ->
@@ -55,6 +55,10 @@ class MainViewModel: ViewModel() {
     val recordTime = MutableLiveData<String>()
 
     fun getAllStations(){
+        AppData.stations.forEach { station ->
+            if (AppData.favorites.contains(station.id.toString()))
+                station.isFavorite = true
+        }
         stationsApi.postValue(AppData.stations)
     }
 
@@ -88,6 +92,30 @@ class MainViewModel: ViewModel() {
             if (station.cities.contains(cityId)) cityStations.add(station)
         }
         stationsApi.postValue(cityStations)
+    }
+
+    fun getStationById(station: Station): Station?{
+        return if (stations.value!=null) {
+            var stationById = Station()
+            stations.value?.forEach { station_ ->
+                if (station_.id == station.id) {
+                    stationById = station_
+                }
+            }
+            stationById
+        } else null
+    }
+
+    fun getStationPosition(station: Station): Int{
+        return if (stations.value!=null){
+            var position = 0
+            stations.value?.forEach {station_ ->
+                if (station_.id == station.id) {
+                    position = stations.value!!.indexOf(station_)
+                }
+            }
+            position
+        } else 0
     }
 
     fun searchStations (query: String){
@@ -146,35 +174,23 @@ class MainViewModel: ViewModel() {
         citiesApi.postValue(AppData.cities)
     }
 
-    fun updateStation(context: Context, station: Station){
+    fun updateStationFavorite(context: Context, station: Station){
         if (station.id==this.station.value!!.id){
             this.station.value = station
         }
-        if (stations.value!!.contains(station))
-            stations.value!![stations.value!!.indexOf(station)].isFavorite = station.isFavorite
-        val favorites = HashSet<String>()
-        AppData.stations.forEach {
-            if (it.isFavorite){
-                favorites.add(it.id.toString())
-            }
-        }
+        if (station.isFavorite)
+            AppData.favorites.add(station.id.toString())
+        else AppData.favorites.remove(station.id.toString())
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("favorites", favorites).apply()
-        AppData.getFavorites(context)
-        stationsApi.value = stations.value
+            .edit().putStringSet("favorites", AppData.favorites).apply()
     }
 
     fun setViewedStation(context: Context, station: Station){
-        AppData.getStationById(station.id).isViewed = true
-        val viewed = HashSet<String>()
-        AppData.stations.forEach {
-            if (it.isViewed){
-                viewed.add(it.id.toString())
-            }
-        }
+        if (station.isViewed)
+            AppData.viewed.add(station.id.toString())
+        else AppData.viewed.remove(station.id.toString())
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("viewed", viewed).apply()
-        AppData.getViewed(context)
+            .edit().putStringSet("viewed", AppData.viewed).apply()
     }
 
 }

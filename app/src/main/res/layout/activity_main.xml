@@ -27,7 +27,8 @@
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/toolbar">
+                android:layout_below="@id/toolbar"
+                android:background="@color/back_main_container">
                 <androidx.fragment.app.FragmentContainerView
                     android:name="androidx.navigation.fragment.NavHostFragment"
                     android:id="@+id/nav_host_fragment"

@@ -1,7 +1,7 @@
 package com.app.topradio.ui
 
-import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
@@ -59,19 +59,18 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
-        (activity as MainActivity).viewModel.station.value = station
+        if (!station.isViewed){
+            station.isViewed = true
+            (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
+        }
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
         (activity as MainActivity).showPlayer(true)
-//        if (!searchView.isIconified) {
-//            searchView.onActionViewCollapsed()
-//        }
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemChanged(position)
-        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
+        (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.*
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -18,17 +17,14 @@ import com.app.topradio.ui.MainActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.DefaultLoadControl.*
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 import java.text.SimpleDateFormat
-import java.time.Clock.tick
 import java.util.*
 
 
@@ -41,7 +37,6 @@ class PlayerService: Service() {
     var bitrateIndex = 0
     private lateinit var fileOutputStream: FileOutputStream
     val handler = Handler(Looper.getMainLooper())
-    val timer = Timer(false)
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -49,7 +44,15 @@ class PlayerService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-        player = SimpleExoPlayer.Builder(this).build()
+//        val loadControl = DefaultLoadControl.Builder().setBufferDurationsMs(
+//            15000,
+//            50000,
+//            15000,
+//            1000)
+//            .build()
+        player = SimpleExoPlayer.Builder(this)
+//            .setLoadControl(loadControl)
+            .build()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -82,6 +85,7 @@ class PlayerService: Service() {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     station.isPlaying = isPlaying
                     if (!isPlaying) {
+                        stopGetBuffer()
                         stopped = true
                         stopForeground(false)
                         if (station.isRecording) {
@@ -93,6 +97,9 @@ class PlayerService: Service() {
                         station.bitrates.forEach {bitrate -> bitrate.isSelected = false }
                         station.bitrates[bitrateIndex].isSelected = true
                         stopped = false
+                        player.setHandleAudioBecomingNoisy(AppData
+                            .getSettingBoolean(this@PlayerService,"headphone"))
+                        getBuffer()
                     }
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_state_changed").apply {
@@ -260,6 +267,19 @@ class PlayerService: Service() {
                 .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
                 .build())
         player.prepare()
+    }
+
+    fun getBuffer(){
+        val r: Runnable = object : Runnable {
+            override fun run() {
+                handler.postDelayed(this, 1000)
+            }
+        }
+        r.run()
+    }
+
+    fun stopGetBuffer(){
+        handler.removeCallbacksAndMessages(null)
     }
 
     inner class PlayerServiceBinder : Binder() {

@@ -54,14 +54,14 @@ class ViewedFragment: Fragment(),
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.station.value = station
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying = false }
+        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying =false }
         (activity as MainActivity).showPlayer(true)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemChanged(position)
-        (activity as MainActivity).viewModel.updateStation(requireContext(), station)
+        (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
