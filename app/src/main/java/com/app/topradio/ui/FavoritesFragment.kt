@@ -67,9 +67,9 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
+        (activity as MainActivity).viewModel.stationsFavorites.value!!.remove(station)
         station.isFavorite = !station.isFavorite
         binding.adapter!!.notifyItemRemoved(position)
-        (activity as MainActivity).viewModel.stations.value!!.remove(station)
         (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
     }
 
@@ -113,7 +113,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onDetach() {
         (activity as MainActivity).viewModel.clearSearchStationsFavorites()
-        (activity as MainActivity).updatePlayerPager()
+        //(activity as MainActivity).updatePlayerPager()
         super.onDetach()
     }
 }

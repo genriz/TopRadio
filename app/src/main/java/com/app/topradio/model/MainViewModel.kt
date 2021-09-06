@@ -7,22 +7,20 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.app.topradio.util.AppData
 import com.app.topradio.api.ApiRadio
-import com.app.topradio.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
     val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
     val stationsFavoritesApp = MutableLiveData<ArrayList<Station>>()
     val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
-
     val station = MutableLiveData<Station>().apply { value = Station() }
     val stationPager = MutableLiveData<Station>().apply { value = Station() }
-
+    private var job: Job? = null
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
         AppData.genres.forEach { genre ->
             var count = 0
@@ -35,7 +33,6 @@ class MainViewModel: ViewModel() {
         value = AppData.genres
     }
     val genres: LiveData<ArrayList<Genre>> = genresApi
-
     private val citiesApi = MutableLiveData<ArrayList<City>>().apply {
         AppData.cities.forEach { city ->
             var count = 0
@@ -48,11 +45,12 @@ class MainViewModel: ViewModel() {
         value = AppData.cities
     }
     val cities: LiveData<ArrayList<City>> = citiesApi
-
     val updateItemPosition = MutableLiveData<Int>()
     val playerWaiting = MutableLiveData<Boolean>()
     val playerRecording = MutableLiveData<Boolean>().apply { value = false }
     val recordTime = MutableLiveData<String>()
+    val playlistApi = MutableLiveData<ArrayList<PlaylistItem>>()
+    val playlist: LiveData<ArrayList<PlaylistItem>> = playlistApi
 
     fun getAllStations(){
         AppData.stations.forEach { station ->
@@ -183,6 +181,7 @@ class MainViewModel: ViewModel() {
         else AppData.favorites.remove(station.id.toString())
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
             .edit().putStringSet("favorites", AppData.favorites).apply()
+        getFavoriteStations()
     }
 
     fun setViewedStation(context: Context, station: Station){
@@ -191,6 +190,36 @@ class MainViewModel: ViewModel() {
         else AppData.viewed.remove(station.id.toString())
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
             .edit().putStringSet("viewed", AppData.viewed).apply()
+    }
+
+    fun getTop100(station: String){
+        job = CoroutineScope(Dispatchers.IO).launch {
+            val response = ApiRadio().getApi()
+                .getTop100("https://playlists8.auto-messenger.ru/storage/playlists/" +
+                        "$station/top-songs/100.json",
+                    AppData.auth)
+            if (response.isSuccessful&&response.body()!=null){
+                playlistApi.postValue(response.body())
+            }
+        }
+    }
+
+    fun getPlaylist(station: String, date: String){
+        job = CoroutineScope(Dispatchers.IO).launch {
+            val response = ApiRadio().getApi()
+                .getTop100("https://playlists8.auto-messenger.ru/storage/playlists/" +
+                        "$station/$date/index.json",
+                    AppData.auth)
+            if (response.isSuccessful&&response.body()!=null){
+                playlistApi.postValue(response.body())
+            }
+        }
+    }
+
+    override fun onCleared() {
+        job?.cancel()
+        job = null
+        super.onCleared()
     }
 
 }

@@ -40,4 +40,8 @@
         android:name="com.app.topradio.ui.SettingsFragment"
         android:id="@+id/menu_settings">
     </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.PlaylistsFragment"
+        android:id="@+id/menu_playlist">
+    </fragment>
 </navigation>

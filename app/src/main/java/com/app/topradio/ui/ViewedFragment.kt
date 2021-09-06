@@ -52,9 +52,7 @@ class ViewedFragment: Fragment(),
 
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
-        (activity as MainActivity).viewModel.station.value = station
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).viewModel.stationsApi.value!!.forEach { it.isPlaying =false }
         (activity as MainActivity).showPlayer(true)
     }
 

@@ -17,6 +17,8 @@ class Station: Serializable {
     var cities = ArrayList<Int>()
     @SerializedName("ge")
     var genres = ArrayList<Int>()
+    @SerializedName("pl")
+    var playList = ""
     var isFavorite = false
     var isPlaying = false
     var isViewed = false

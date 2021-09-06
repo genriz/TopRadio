@@ -3,9 +3,14 @@ package com.app.topradio.util
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
 import android.widget.Toast
@@ -20,9 +25,11 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.DefaultLoadControl.*
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
+import java.net.InetAddress
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
@@ -85,7 +92,6 @@ class PlayerService: Service() {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     station.isPlaying = isPlaying
                     if (!isPlaying) {
-                        stopGetBuffer()
                         stopped = true
                         stopForeground(false)
                         if (station.isRecording) {
@@ -99,7 +105,6 @@ class PlayerService: Service() {
                         stopped = false
                         player.setHandleAudioBecomingNoisy(AppData
                             .getSettingBoolean(this@PlayerService,"headphone"))
-                        getBuffer()
                     }
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_state_changed").apply {
@@ -108,20 +113,34 @@ class PlayerService: Service() {
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    super.onPlayerError(error)
-                    bitrateIndex++
-                    if (bitrateIndex<station.bitrates.size){
-                        player.setMediaItem(
-                            MediaItem.Builder()
-                                .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                                .build())
-                        player.prepare()
+                    if (isInternetAvailable()) {
+                        bitrateIndex++
+                        if (bitrateIndex < station.bitrates.size) {
+                            player.setMediaItem(
+                                MediaItem.Builder()
+                                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                                    .build()
+                            )
+                            player.prepare()
+                        } else {
+                            bitrateIndex = 0
+                            LocalBroadcastManager.getInstance(this@PlayerService)
+                                .sendBroadcast(Intent("player_state_changed").apply {
+                                    putExtra("isPlaying", false)
+                                })
+                        }
                     } else {
-                        bitrateIndex = 0
-                        LocalBroadcastManager.getInstance(this@PlayerService)
-                            .sendBroadcast(Intent("player_state_changed").apply {
-                                putExtra("isPlaying", false)
-                            })
+                        if (AppData.getSettingBoolean(this@PlayerService,"reconnect")) {
+                            applicationContext.registerReceiver(mConnReceiver,
+                                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+                        } else {
+                            playerNotificationManager.setPlayer(null)
+                            station = Station()
+                            LocalBroadcastManager.getInstance(this@PlayerService)
+                                .sendBroadcast(Intent("player_close"))
+                            LocalBroadcastManager.getInstance(this@PlayerService)
+                                .sendBroadcast(Intent("player_stop_record"))
+                        }
                     }
                 }
             })
@@ -269,17 +288,13 @@ class PlayerService: Service() {
         player.prepare()
     }
 
-    fun getBuffer(){
-        val r: Runnable = object : Runnable {
-            override fun run() {
-                handler.postDelayed(this, 1000)
-            }
+    fun isInternetAvailable(): Boolean {
+        return try {
+            val ipAddr: InetAddress = InetAddress.getByName("google.com")
+            !ipAddr.equals("")
+        } catch (e: java.lang.Exception) {
+            false
         }
-        r.run()
-    }
-
-    fun stopGetBuffer(){
-        handler.removeCallbacksAndMessages(null)
     }
 
     inner class PlayerServiceBinder : Binder() {
@@ -290,5 +305,16 @@ class PlayerService: Service() {
             get() = this@PlayerService.player
 
         val station get() = this@PlayerService.station
+    }
+
+    private val mConnReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            val currentNetworkInfo =
+                intent.getParcelableExtra<NetworkInfo>(ConnectivityManager.EXTRA_NETWORK_INFO)
+            if (currentNetworkInfo!!.isConnected) {
+                player.prepare()
+                applicationContext.unregisterReceiver(this)
+            }
+        }
     }
 }

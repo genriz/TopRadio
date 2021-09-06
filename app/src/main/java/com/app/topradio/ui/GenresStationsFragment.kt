@@ -114,7 +114,7 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
 
     override fun onDetach() {
         (activity as MainActivity).viewModel.clearSearchStations()
-        (activity as MainActivity).updatePlayerPager()
+        //(activity as MainActivity).updatePlayerPager()
         super.onDetach()
     }
 }

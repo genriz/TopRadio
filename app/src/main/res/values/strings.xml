@@ -29,4 +29,6 @@
     <string name="sec">сек</string>
     <string name="min">мин</string>
     <string name="off">выключен</string>
+    <string name="playlist">Плей-лист</string>
+    <string name="top100">ТОП 100</string>
 </resources>

@@ -54,17 +54,20 @@ class SettingsFragment: Fragment(){
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-        val bufferSetting = AppData.getSettingInt(requireContext(),"buffer")
-        val buffer = if (AppData.bufferSizes[bufferSetting]<1000)
-            "${AppData.bufferSizes[bufferSetting]} ${requireContext().getString(R.string.ms)}"
-        else "${AppData.bufferSizes[bufferSetting]/1000} ${requireContext().getString(R.string.sec)}"
-        binding.bufferSize.text = buffer
+//        val bufferSetting = AppData.getSettingInt(requireContext(),"buffer")
+//        val buffer = if (AppData.bufferSizes[bufferSetting]<1000)
+//            "${AppData.bufferSizes[bufferSetting]} ${requireContext().getString(R.string.ms)}"
+//        else "${AppData.bufferSizes[bufferSetting]/1000} ${requireContext().getString(R.string.sec)}"
+//        binding.bufferSize.text = buffer
 
         val timerSetting = AppData.getSettingInt(requireContext(),"timer")
         val timer = if (AppData.timerValues[timerSetting]==0)
             requireContext().getString(R.string.off)
         else "${AppData.timerValues[timerSetting]} ${requireContext().getString(R.string.min)}"
         binding.timerValue.text = timer
+        binding.settingTimer.setOnClickListener {
+            
+        }
     }
 
 

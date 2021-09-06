@@ -7,11 +7,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.content.ClipData
-import android.content.res.Configuration
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.*
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -65,13 +63,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             player = binder.player
             if (binder.station.name!="") {
                 bound = true
-                viewModel.station.value = AppData.getStationById(binder.station.id)
-                viewModel.station.value!!.isPlaying = binder.station.isPlaying
-                viewModel.station.value!!.track = binder.station.track
-                viewModel.station.value!!.bitrates = binder.station.bitrates
-                viewModel.playerRecording.value = binder.station.isRecording
+                viewModel.station.value = binder.station
                 viewModel.stationPager.value = viewModel.station.value!!
-                service.station = viewModel.station.value!!
                 showPlayer(true)
             }
         }
@@ -117,6 +110,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_HIDDEN
+                viewModel.playerWaiting.value = false
             }
             if (intent?.action == "player_stop_record") {
                 stopRecord()
@@ -204,6 +198,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.title = getString(R.string.menu_settings)
                     supportActionBar!!.setIcon(null)
                 }
+                R.id.menu_playlist -> {
+                    supportActionBar!!.title = viewModel.station.value!!.name
+                    supportActionBar!!.setIcon(null)
+                }
             }
         }
 
@@ -244,19 +242,26 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             if (service.station.id==viewModel.station.value!!.id){
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
-                else player.play()
+                else {
+                    viewModel.playerWaiting.value = true
+                    player.prepare()
+                    player.play()
+                }
             } else {
                 playStation(viewModel.station.value!!)
             }
         }
         binding.playerView.playPauseExtended.setOnClickListener {
-            if (service.station.id==viewModel.stationPager.value!!.id){
-                if (viewModel.stationPager.value!!.isPlaying)
+            if (service.station.id == viewModel.stationPager.value!!.id) {
+                if (viewModel.station.value!!.isPlaying)
                     player.pause()
-                else player.play()
-            } else {
+                else {
+                    viewModel.playerWaiting.value = true
+                    player.prepare()
+                    player.play()
+                }
+            } else
                 playStation(viewModel.stationPager.value!!)
-            }
         }
         binding.playerView.favoritePlayer.setOnClickListener {
             viewModel.station.value!!.isFavorite = !viewModel.station.value!!.isFavorite
@@ -278,6 +283,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     stopRecord()
                 }
             }
+        }
+        binding.playerView.playlistExtended.setOnClickListener {
+            navController.navigate(R.id.menu_playlist)
         }
         binding.playerView.root.setOnClickListener {
             binding.playerView.playerExpanded.visibility = View.VISIBLE
@@ -320,6 +328,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     val bottomSheetShiftDown = currentHeight - bottomSheet.top
                     binding.navHostFragment.setPadding(0, 0, 0,
                         (bottomSheet.height + bottomSheetShiftDown))
+                    if (playerStationsAdapter.currentList.size==1)
+                        viewModel.stationPager.value = viewModel.station.value
                 }
 
             })
@@ -327,11 +337,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(withPager: Boolean){
+        binding.playerView.playerPager.adapter = playerStationsAdapter
         val position = viewModel.getStationPosition(viewModel.stationPager.value!!)
-        Log.v("DASD","$position ${viewModel.stationPager.value!!.isPlaying}")
-        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
         binding.playerView.playerExpanded.visibility = View.VISIBLE
-        playerStationsAdapter.submitList(viewModel.stations.value!!)
+        playerStationsAdapter.submitList(ArrayList<Station>().apply {
+            addAll(viewModel.stations.value!!)
+        })
         binding.playerView.playerPager.postDelayed({
             binding.playerView.playerPager
                 .setCurrentItem(position, false)
@@ -342,17 +353,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             playStation(viewModel.station.value!!)
         } else if (service.station.name=="")
             viewModel.station.value = viewModel.stationPager.value
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun playStation(station: Station){
-        viewModel.stations.value!!.forEach {
-            it.isPlaying = false
-            it.track = ""
-        }
-        playerStationsAdapter.notifyItemChanged(viewModel.getStationPosition(viewModel.station.value!!))
-        viewModel.station.value = viewModel.stationPager.value
         viewModel.playerWaiting.value = true
         if (!bound){
+            viewModel.stations.value!!.forEach {
+                it.isPlaying = false
+                it.track = ""
+            }
+            playerStationsAdapter.notifyItemChanged(viewModel.getStationPosition(viewModel.station.value!!))
+            viewModel.station.value = viewModel.stationPager.value
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("station", station)
@@ -377,7 +389,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     fun updatePlayerPager(){
         playerStationsAdapter.submitList(ArrayList<Station>()
             .apply { add (viewModel.station.value!!) })
-        playerStationsAdapter.notifyItemChanged(0)
     }
 
     override fun onSupportNavigateUp(): Boolean {
