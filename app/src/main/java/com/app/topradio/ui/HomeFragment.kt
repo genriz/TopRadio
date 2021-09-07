@@ -6,13 +6,17 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.app.topradio.R
 import com.app.topradio.databinding.FragmentHomeBinding
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
+import com.app.topradio.ui.adapters.StationsListGridAdapter
 import com.app.topradio.util.AppData
 
-class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
+class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
+    StationsListGridAdapter.OnClickListener {
 
     private lateinit var binding: FragmentHomeBinding
     private lateinit var searchView: SearchView
@@ -22,7 +26,16 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
-        binding.adapter = StationsListAdapter(this)
+        //binding.adapter = StationsListAdapter(this)
+        if (AppData.getSettingString(requireContext(),"view")
+            ==requireContext().getString(R.string.list)){
+            binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
+            binding.adapter = StationsListAdapter(this)
+        } else {
+            binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
+                StaggeredGridLayoutManager.VERTICAL)
+            binding.adapter = StationsListGridAdapter(this)
+        }
         binding.lifecycleOwner = this
         return binding.root
     }

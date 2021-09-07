@@ -2,6 +2,7 @@ package com.app.topradio.util
 
 import android.app.Activity
 import android.content.Context
+import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.model.Station
@@ -83,5 +84,21 @@ object AppData {
     fun setSettingInt(context: Context, setting: String, value: Int) {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
             .putInt(setting, value).apply()
+    }
+    fun getSettingString(context: Context, setting: String):String{
+        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getString(setting,context.getString(R.string.list))!!
+    }
+    fun setSettingString(context: Context, setting: String, value: String) {
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putString(setting, value).apply()
+    }
+    fun getSettingLong(context: Context, setting: String):Long{
+        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getLong(setting,0L)
+    }
+    fun setSettingLong(context: Context, setting: String, value: Long) {
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putLong(setting, value).apply()
     }
 }

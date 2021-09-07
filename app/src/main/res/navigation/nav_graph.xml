@@ -44,4 +44,8 @@
         android:name="com.app.topradio.ui.PlaylistsFragment"
         android:id="@+id/menu_playlist">
     </fragment>
+    <fragment
+        android:name="com.app.topradio.ui.AlarmFragment"
+        android:id="@+id/menu_alarm">
+    </fragment>
 </navigation>

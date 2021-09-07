@@ -5,14 +5,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.app.topradio.databinding.StationItemListBinding
+import com.app.topradio.databinding.StationItemListGridBinding
 import com.app.topradio.model.Station
 
-class StationsListAdapter(private val listener: OnClickListener):
-    ListAdapter<Station, StationsListAdapter.StationViewHolder>(Companion) {
+class StationsListGridAdapter(private val listener: OnClickListener):
+    ListAdapter<Station, StationsListGridAdapter.StationViewHolder>(Companion) {
 
-
-    class StationViewHolder(val binding: StationItemListBinding) :
+    class StationViewHolder(val binding: StationItemListGridBinding) :
         RecyclerView.ViewHolder(binding.root)
 
     companion object: DiffUtil.ItemCallback<Station>() {
@@ -24,7 +23,7 @@ class StationsListAdapter(private val listener: OnClickListener):
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
-        val binding = StationItemListBinding.inflate(layoutInflater,parent,false)
+        val binding = StationItemListGridBinding.inflate(layoutInflater,parent,false)
         return StationViewHolder(binding)
     }
 
@@ -32,9 +31,6 @@ class StationsListAdapter(private val listener: OnClickListener):
         val station = getItem(position)
         holder.binding.station = station
         holder.binding.executePendingBindings()
-        holder.binding.favorite.setOnClickListener {
-            listener.onFavoriteClick(station, position)
-        }
         holder.binding.root.setOnClickListener {
             listener.onStationClick(station)
         }

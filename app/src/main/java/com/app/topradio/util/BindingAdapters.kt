@@ -11,6 +11,7 @@ import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.model.PlaylistItem
+import com.app.topradio.ui.adapters.StationsListAdapter
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.*
@@ -20,13 +21,18 @@ import java.util.*
 fun RecyclerView.bindRecyclerViewAdapter(adapter: RecyclerView.Adapter<*>) {
     this.run {
         this.adapter = adapter
-        val itemDecorator = DividerItemDecoration(
-            context, DividerItemDecoration.VERTICAL)
-        itemDecorator.setDrawable(
-            ContextCompat.getDrawable(
-                this.context,
-                R.drawable.divider)!!)
-        this.addItemDecoration(itemDecorator)
+        if (adapter is StationsListAdapter) {
+            val itemDecorator = DividerItemDecoration(
+                context, DividerItemDecoration.VERTICAL
+            )
+            itemDecorator.setDrawable(
+                ContextCompat.getDrawable(
+                    this.context,
+                    R.drawable.divider
+                )!!
+            )
+            this.addItemDecoration(itemDecorator)
+        }
     }
 }
 
@@ -150,4 +156,17 @@ fun setPlaylistInfo (view: TextView, playlistItem: PlaylistItem){
         val timeTxt = sdfTime.format(timeLong)
         view.text = timeTxt
     } else view.text = playlistItem.total.toString()
+}
+
+@BindingAdapter("setViewTypeIcon")
+fun setViewTypeIcon (view: ImageView, type: String){
+    if (type==view.context.getString(R.string.list)){
+        view.setImageResource(R.drawable.ic_list)
+    } else view.setImageResource(R.drawable.ic_grid)
+}
+
+@BindingAdapter("setDate")
+fun setDate (view: TextView, date: Long){
+    val dateTxt = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(date)
+    view.text = dateTxt
 }

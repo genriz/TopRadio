@@ -9,7 +9,8 @@ import com.app.topradio.R
 import com.app.topradio.databinding.FragmentSettingsBinding
 import com.app.topradio.util.AppData
 
-class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange {
+class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange,
+    DialogViewType.OnDialogViewClick {
 
     private lateinit var binding: FragmentSettingsBinding
 
@@ -77,10 +78,22 @@ class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange {
                 }
             }
         }
+
+        binding.viewModel!!.viewTypeValue.value =
+            AppData.getSettingString(requireContext(),"view")
+        binding.settingView.setOnClickListener {
+            DialogViewType(requireContext(), this).show()
+        }
     }
 
     override fun onSeekbarChanged(value: Int) {
         binding.viewModel!!.timerValue.value = value
+    }
+
+    override fun onViewTypeClick(viewType: String) {
+        binding.viewModel!!.viewTypeValue.value = viewType
+        AppData.setSettingString(requireContext(), "view",
+            binding.viewModel!!.viewTypeValue.value!!)
     }
 
 

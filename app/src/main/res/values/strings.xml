@@ -28,7 +28,19 @@
     <string name="ms">мс</string>
     <string name="sec">сек</string>
     <string name="min">мин</string>
+    <string name="hour">ч</string>
     <string name="off">выключен</string>
     <string name="playlist">Плей-лист</string>
     <string name="top100">ТОП 100</string>
+    <string name="station">Радиостанция</string>
+    <string name="time">Время</string>
+    <string name="repeat">Повтор</string>
+    <string name="repeat_times">Частота повторений</string>
+    <string name="volume_slide">Плавное увеличение громкости</string>
+    <string name="view_type">Тип отображения</string>
+    <string name="list">Список</string>
+    <string name="grid">Сетка</string>
+    <string name="alarm">Будильник</string>
+    <string name="alarm_on">Будильник включен</string>
+    <string name="date">Дата</string>
 </resources>

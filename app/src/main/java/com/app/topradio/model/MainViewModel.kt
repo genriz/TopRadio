@@ -54,6 +54,7 @@ class MainViewModel: ViewModel() {
     val playlistApi = MutableLiveData<ArrayList<PlaylistItem>>()
     val playlist: LiveData<ArrayList<PlaylistItem>> = playlistApi
     val timerValue = MutableLiveData<Int>()
+    val viewTypeValue = MutableLiveData<String>()
 
     fun getAllStations(){
         AppData.stations.forEach { station ->

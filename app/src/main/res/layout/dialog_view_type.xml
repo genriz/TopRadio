@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/top_menu">
+        <TextView
+            android:id="@+id/viewList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/stations_list"
+            android:fontFamily="@font/roboto_medium"
+            android:textSize="15sp"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/list"
+            app:drawableStartCompat="@drawable/ic_list"
+            android:drawablePadding="12dp"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"/>
+        <TextView
+            android:id="@+id/viewGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/stations_list"
+            android:fontFamily="@font/roboto_medium"
+            android:textSize="15sp"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:text="@string/grid"
+            app:drawableStartCompat="@drawable/ic_grid"
+            android:drawablePadding="12dp"/>
+
+    </LinearLayout>
+</layout>

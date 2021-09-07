@@ -209,6 +209,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.title = viewModel.station.value!!.name
                     supportActionBar!!.setIcon(null)
                 }
+                R.id.menu_alarm -> {
+                    supportActionBar!!.title = getString(R.string.menu_alarm)
+                    supportActionBar!!.setIcon(null)
+                }
             }
         }
 
@@ -542,6 +546,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     override fun onMenuPositionClick(position: Int) {
         when (position){
+            0 -> navController.navigate(R.id.menu_alarm)
             3 -> navController.navigate(R.id.menu_settings)
             4 -> finish()
         }
