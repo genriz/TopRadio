@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
+import com.app.topradio.model.PlaylistItem
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.*
@@ -129,4 +130,24 @@ fun setDateText (view: TextView, name: String){
     val date = SimpleDateFormat("dd.MM.yy HH:mm", Locale.getDefault())
         .format(timeTxt.toLong())
     view.text = date
+}
+
+@BindingAdapter("setTimerText")
+fun setTimerText (view: TextView, timer: Int){
+    val timeTxt = if (timer==0) view.context.getString(R.string.off)
+    else "$timer ${view.context.getString(R.string.min)}"
+    view.text = timeTxt
+}
+
+@BindingAdapter("setPlaylistInfo")
+fun setPlaylistInfo (view: TextView, playlistItem: PlaylistItem){
+    if (playlistItem.start_at!="") {
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        sdf.timeZone = TimeZone.getTimeZone("GMT")
+        val timeLong = sdf.parse(playlistItem.start_at)!!
+        val sdfTime = SimpleDateFormat("HH:mm", Locale.getDefault())
+        sdfTime.timeZone = TimeZone.getDefault()
+        val timeTxt = sdfTime.format(timeLong)
+        view.text = timeTxt
+    } else view.text = playlistItem.total.toString()
 }

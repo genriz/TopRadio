@@ -11,6 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.collections.ArrayList
 
 class MainViewModel: ViewModel() {
@@ -51,6 +53,7 @@ class MainViewModel: ViewModel() {
     val recordTime = MutableLiveData<String>()
     val playlistApi = MutableLiveData<ArrayList<PlaylistItem>>()
     val playlist: LiveData<ArrayList<PlaylistItem>> = playlistApi
+    val timerValue = MutableLiveData<Int>()
 
     fun getAllStations(){
         AppData.stations.forEach { station ->
@@ -199,7 +202,9 @@ class MainViewModel: ViewModel() {
                         "$station/top-songs/100.json",
                     AppData.auth)
             if (response.isSuccessful&&response.body()!=null){
-                playlistApi.postValue(response.body())
+                val array = response.body()!!
+                array.sortByDescending { it.total }
+                playlistApi.postValue(array)
             }
         }
     }
@@ -211,7 +216,9 @@ class MainViewModel: ViewModel() {
                         "$station/$date/index.json",
                     AppData.auth)
             if (response.isSuccessful&&response.body()!=null){
-                playlistApi.postValue(response.body())
+                val array = response.body()!!
+                array.sortByDescending { it.start_at }
+                playlistApi.postValue(array)
             }
         }
     }

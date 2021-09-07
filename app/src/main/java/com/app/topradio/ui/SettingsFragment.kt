@@ -9,7 +9,7 @@ import com.app.topradio.R
 import com.app.topradio.databinding.FragmentSettingsBinding
 import com.app.topradio.util.AppData
 
-class SettingsFragment: Fragment(){
+class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange {
 
     private lateinit var binding: FragmentSettingsBinding
 
@@ -18,6 +18,8 @@ class SettingsFragment: Fragment(){
         container: ViewGroup?,
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_settings, container, false)
+        binding.viewModel = (activity as MainActivity).viewModel
+        binding.lifecycleOwner = this
         return binding.root
     }
 
@@ -60,14 +62,25 @@ class SettingsFragment: Fragment(){
 //        else "${AppData.bufferSizes[bufferSetting]/1000} ${requireContext().getString(R.string.sec)}"
 //        binding.bufferSize.text = buffer
 
-        val timerSetting = AppData.getSettingInt(requireContext(),"timer")
-        val timer = if (AppData.timerValues[timerSetting]==0)
-            requireContext().getString(R.string.off)
-        else "${AppData.timerValues[timerSetting]} ${requireContext().getString(R.string.min)}"
-        binding.timerValue.text = timer
+        binding.viewModel!!.timerValue.value = AppData.getSettingInt(requireContext(),"timer")
         binding.settingTimer.setOnClickListener {
-            
+            val dialog = DialogSeekbar(requireContext(),this)
+            dialog.setProgress(binding.viewModel!!.timerValue.value!!/10)
+            dialog.show()
+            dialog.setOnDismissListener {
+                AppData.setSettingInt(requireContext(), "timer",
+                    binding.viewModel!!.timerValue.value!!)
+                if (binding.viewModel!!.timerValue.value!!>0) {
+                    if ((activity as MainActivity).viewModel.station.value!!.name != "") {
+                        (activity as MainActivity).service.setTimerOff()
+                    }
+                }
+            }
         }
+    }
+
+    override fun onSeekbarChanged(value: Int) {
+        binding.viewModel!!.timerValue.value = value
     }
 
 

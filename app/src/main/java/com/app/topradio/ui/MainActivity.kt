@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var service: PlayerService
+    lateinit var service: PlayerService
     lateinit var player: SimpleExoPlayer
     private var bound = false
     private val playerStationsAdapter = PlayerPagerAdapter(this, this)
@@ -111,6 +111,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_HIDDEN
                 viewModel.playerWaiting.value = false
+//                viewModel.station.value!!.isPlaying = false
+//                viewModel.station.value = viewModel.station.value
+//                viewModel.stationPager.value = viewModel.station.value
             }
             if (intent?.action == "player_stop_record") {
                 stopRecord()
@@ -164,7 +167,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (BottomSheetBehavior.from(binding.playerView.root).state
-                == BottomSheetBehavior.STATE_EXPANDED) {
+                == BottomSheetBehavior.STATE_EXPANDED
+                &&destination.id!=R.id.menu_playlist) {
                 binding.playerView.playerMini.visibility = View.VISIBLE
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_COLLAPSED
@@ -199,6 +203,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.setIcon(null)
                 }
                 R.id.menu_playlist -> {
+                    BottomSheetBehavior.from(binding.playerView.root).isHideable = true
+                    BottomSheetBehavior.from(binding.playerView.root).state =
+                        BottomSheetBehavior.STATE_HIDDEN
                     supportActionBar!!.title = viewModel.station.value!!.name
                     supportActionBar!!.setIcon(null)
                 }
@@ -302,7 +309,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                                 .setCurrentItem(
                                     viewModel.getStationPosition(viewModel.station.value!!),
                                     false)
-                            BottomSheetBehavior.from(binding.playerView.root).isHideable = false
+                            if (service.station.name==""){
+                                BottomSheetBehavior.from(binding.playerView.root).isHideable = true
+                                BottomSheetBehavior.from(binding.playerView.root).state =
+                                    BottomSheetBehavior.STATE_HIDDEN
+                            } else BottomSheetBehavior.from(binding.playerView.root).isHideable = false
                             binding.playerView.playerExpanded.visibility = View.GONE
                             hideKeyboard()
                         }
@@ -491,6 +502,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         binding.playerView.playerMini.visibility = View.VISIBLE
         BottomSheetBehavior.from(binding.playerView.root).state =
             BottomSheetBehavior.STATE_COLLAPSED
+    }
+
+    fun toExpandedPlayer(){
+        binding.playerView.playerExpanded.visibility = View.VISIBLE
+        BottomSheetBehavior.from(binding.playerView.root).state =
+            BottomSheetBehavior.STATE_EXPANDED
     }
 
     override fun onCopyClick(text: String) {

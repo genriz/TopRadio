@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/back_main_container"
+        android:clipChildren="false">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/label"/>
+        <SeekBar
+            android:background="@null"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar1"
+            android:max="10"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="20dp"
+            android:thumb="@drawable/ic_thumb"
+            android:progressBackgroundTint="@color/back_main_container"
+            android:secondaryProgressTint="@color/back_main_container"
+            android:progressTint="@color/back_main_container"/>
+        <SeekBar
+            android:background="@null"
+            android:clickable="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:max="10"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:thumb="@null"
+            android:progressTint="@color/startGradient"
+            android:layout_marginBottom="16dp"/>
+    </LinearLayout>
+
+</layout>

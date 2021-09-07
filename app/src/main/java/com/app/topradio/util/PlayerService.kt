@@ -25,7 +25,6 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.DefaultLoadControl.*
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
@@ -100,11 +99,13 @@ class PlayerService: Service() {
                                 .sendBroadcast(Intent("player_stop_record"))
                         }
                     } else {
-                        station.bitrates.forEach {bitrate -> bitrate.isSelected = false }
+                        station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
                         station.bitrates[bitrateIndex].isSelected = true
                         stopped = false
-                        player.setHandleAudioBecomingNoisy(AppData
-                            .getSettingBoolean(this@PlayerService,"headphone"))
+                        player.setHandleAudioBecomingNoisy(
+                            AppData
+                                .getSettingBoolean(this@PlayerService, "headphone")
+                        )
                     }
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_state_changed").apply {
@@ -113,35 +114,7 @@ class PlayerService: Service() {
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    if (isInternetAvailable()) {
-                        bitrateIndex++
-                        if (bitrateIndex < station.bitrates.size) {
-                            player.setMediaItem(
-                                MediaItem.Builder()
-                                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                                    .build()
-                            )
-                            player.prepare()
-                        } else {
-                            bitrateIndex = 0
-                            LocalBroadcastManager.getInstance(this@PlayerService)
-                                .sendBroadcast(Intent("player_state_changed").apply {
-                                    putExtra("isPlaying", false)
-                                })
-                        }
-                    } else {
-                        if (AppData.getSettingBoolean(this@PlayerService,"reconnect")) {
-                            applicationContext.registerReceiver(mConnReceiver,
-                                IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-                        } else {
-                            playerNotificationManager.setPlayer(null)
-                            station = Station()
-                            LocalBroadcastManager.getInstance(this@PlayerService)
-                                .sendBroadcast(Intent("player_close"))
-                            LocalBroadcastManager.getInstance(this@PlayerService)
-                                .sendBroadcast(Intent("player_stop_record"))
-                        }
-                    }
+                    handlePlayerError()
                 }
             })
             playerNotificationManager = PlayerNotificationManager.Builder(this,
@@ -179,6 +152,7 @@ class PlayerService: Service() {
                     override fun onNotificationCancelled(
                         notificationId: Int,
                         dismissedByUser: Boolean) {
+                        station = Station()
                         LocalBroadcastManager.getInstance(this@PlayerService)
                             .sendBroadcast(Intent("player_close"))
                         LocalBroadcastManager.getInstance(this@PlayerService)
@@ -209,9 +183,63 @@ class PlayerService: Service() {
                     .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
                     .build())
             player.prepare()
+            if (AppData.getSettingInt(this,"timer")>0){
+                setTimerOff()
+            }
         }
 
         return START_STICKY
+    }
+
+    fun setTimerOff() {
+        val timer = Timer()
+        val hourlyTask: TimerTask = object : TimerTask() {
+            override fun run() {
+                playerNotificationManager.setPlayer(null)
+                player.stop()
+                stopped = true
+                station = Station()
+                stopSelf()
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_close"))
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_stop_record"))
+            }
+        }
+        timer.schedule (hourlyTask, AppData.getSettingInt(this,"timer")*60*1000L)
+    }
+
+
+    private fun handlePlayerError() {
+        if (isInternetAvailable()) {
+            bitrateIndex++
+            if (bitrateIndex < station.bitrates.size) {
+                player.setMediaItem(
+                    MediaItem.Builder()
+                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                        .build()
+                )
+                player.prepare()
+            } else {
+                bitrateIndex = 0
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_state_changed").apply {
+                        putExtra("isPlaying", false)
+                    })
+            }
+        } else {
+            if (AppData.getSettingBoolean(this@PlayerService,"reconnect")) {
+                applicationContext.registerReceiver(mConnReceiver,
+                    IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+            } else {
+                playerNotificationManager.setPlayer(null)
+                station = Station()
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_close"))
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_stop_record"))
+            }
+        }
     }
 
     private fun loadBitmap(url: String, callback: PlayerNotificationManager.BitmapCallback?) {

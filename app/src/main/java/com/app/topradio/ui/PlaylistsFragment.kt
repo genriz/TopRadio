@@ -75,5 +75,9 @@ class PlaylistsFragment: Fragment() {
                 date)
     }
 
+    override fun onDetach() {
+        (activity as MainActivity).toExpandedPlayer()
+        super.onDetach()
+    }
 
 }
