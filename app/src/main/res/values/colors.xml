@@ -17,6 +17,7 @@
     <color name="menu_default">#CDD6EC</color>
     <color name="divider">#F3F4F5</color>
     <color name="small_player_back">#EBEEF6</color>
+    <color name="small_player_line">#7CAEB8D3</color>
     <color name="startGradient">#46A614</color>
     <color name="endGradient">#7A14A6</color>
     <color name="bitrate_default">#8B95AF</color>

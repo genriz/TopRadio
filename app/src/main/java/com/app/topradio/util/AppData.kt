@@ -7,6 +7,9 @@ import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.model.Station
 import okhttp3.Credentials
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 object AppData {
 
@@ -21,18 +24,10 @@ object AppData {
         add(5000)
         add(15000)
     }
-    val timerValues = ArrayList<Int>().apply {
-        add(0)
-        add(10)
-        add(20)
-        add(30)
-        add(40)
-        add(50)
-        add(60)
-        add(70)
-        add(80)
-        add(90)
-        add(100)
+    val calDays = ArrayList<Int>().apply {
+        addAll(arrayOf(
+            Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY,
+            Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY))
     }
 
     fun getFavorites(context: Context){
@@ -67,6 +62,17 @@ object AppData {
             if (it.id == id) position = stations.indexOf(it)
         }
         return position
+    }
+
+    fun getRepeatDays(context: Context): HashSet<String>{
+        val repeatDays = HashSet<String>()
+        repeatDays.addAll(context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getStringSet("repeatDays", HashSet<String>())!!)
+        return repeatDays
+    }
+    fun setRepeatDays(context: Context, days: HashSet<String>){
+        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putStringSet("repeatDays", days).apply()
     }
 
     fun getSettingBoolean(context: Context, setting: String):Boolean{

@@ -5,15 +5,18 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.Window
+import android.view.WindowManager
+import androidx.appcompat.widget.SearchView
+import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModelProvider
 import com.app.topradio.R
 import com.app.topradio.databinding.DialogStationsBinding
 import com.app.topradio.model.Station
 import com.app.topradio.ui.adapters.StationsDialogListAdapter
+
 
 class DialogStations(context:Context, private val stations: ArrayList<Station>,
                      private val listener: OnDialogStationClick):
@@ -29,14 +32,28 @@ class DialogStations(context:Context, private val stations: ArrayList<Station>,
         setContentView(binding.root)
         window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            val displayMetrics = DisplayMetrics()
+            windowManager.defaultDisplay.getMetrics(displayMetrics)
+            val displayHeight = displayMetrics.heightPixels
+            val layoutParams = WindowManager.LayoutParams()
+            layoutParams.copyFrom(this.attributes)
+            val dialogWindowHeight = (displayHeight * 0.7f).toInt()
+            layoutParams.height = dialogWindowHeight
+            this.attributes = layoutParams
         }
-        binding.adapter = StationsDialogListAdapter(this).apply {
-            submitList(stations)
+        binding.adapter = StationsDialogListAdapter(this)
+        binding.searchStationDialog.doOnTextChanged { text, _, _, _ ->
+            listener.onSearch(text.toString())
         }
+    }
+
+    fun updateList(stations: ArrayList<Station>){
+        binding.adapter?.submitList(stations)
     }
 
     interface OnDialogStationClick{
         fun onStationSelected(station: Station)
+        fun onSearch(query:String)
     }
 
     override fun onStationClick(station: Station) {

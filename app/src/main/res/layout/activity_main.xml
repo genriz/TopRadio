@@ -36,6 +36,12 @@
                     android:layout_height="match_parent"
                     app:defaultNavHost="true"
                     app:navGraph="@navigation/nav_graph"/>
+                <View
+                    android:id="@+id/shadow"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@drawable/shadow"
+                    app:layout_anchor="@id/playerView" />
                 <include layout="@layout/player_pager"
                     android:id="@+id/playerView"/>
             </androidx.coordinatorlayout.widget.CoordinatorLayout>

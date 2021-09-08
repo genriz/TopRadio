@@ -1,8 +1,10 @@
 package com.app.topradio.model
 
-class Alarm {
+import java.io.Serializable
+
+class Alarm: Serializable {
     var dateTime = 0L
-    var repeat = ArrayList<Int>()
-    var stationId = 0
+    var repeat = HashSet<String>()
+    var station = Station()
     var volumeSlide = false
 }

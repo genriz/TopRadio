@@ -383,6 +383,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("station", station)
+            serviceBundle.putBoolean("fromAlarm", false)
             intent.putExtra("bundle", serviceBundle)
             startService(intent)
             stopRecord()

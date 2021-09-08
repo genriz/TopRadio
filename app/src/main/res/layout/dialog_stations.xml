@@ -11,7 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/back_main_container">
-        <androidx.appcompat.widget.SearchView
+        <EditText
+            android:drawableStart="@drawable/ic_search_black_24dp"
+            android:drawablePadding="12dp"
             android:id="@+id/searchStationDialog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
@@ -19,6 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            setAdapter="@{adapter}"/>
+            setAdapter="@{adapter}"
+            android:clipToPadding="false"
+            android:clipChildren="false"/>
     </LinearLayout>
 </layout>

@@ -1,5 +1,6 @@
 package com.app.topradio.util
 
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -13,10 +14,12 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.app.topradio.R
+import com.app.topradio.model.Alarm
 import com.app.topradio.model.Station
 import com.app.topradio.ui.MainActivity
 import com.bumptech.glide.Glide
@@ -39,6 +42,7 @@ class PlayerService: Service() {
     private lateinit var player: SimpleExoPlayer
     private lateinit var playerNotificationManager: PlayerNotificationManager
     var station = Station()
+    var alarm = Alarm()
     var stopped = false
     var bitrateIndex = 0
     private lateinit var fileOutputStream: FileOutputStream
@@ -64,6 +68,11 @@ class PlayerService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getBundleExtra("bundle")?.let{
             station = it.getSerializable("station") as Station
+            val fromAlarm = it.getBoolean("fromAlarm")
+            if (fromAlarm) {
+                alarm = it.getSerializable("alarm") as Alarm
+                checkAlarm()
+            }
             bitrateIndex = 0
             station.bitrates.forEach { br ->
                 if (br.isSelected) {
@@ -132,7 +141,7 @@ class PlayerService: Service() {
                         intent1.putExtra("bundle", serviceBundle)
                         return PendingIntent.getActivity(
                             applicationContext, 0,
-                            Intent(applicationContext, MainActivity::class.java), 0
+                            intent1, 0
                         )
                     }
 
@@ -178,17 +187,38 @@ class PlayerService: Service() {
                 setUsePreviousAction(false)
             }
             player.playWhenReady = true
-            player.setMediaItem(
-                MediaItem.Builder()
-                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                    .build())
-            player.prepare()
-            if (AppData.getSettingInt(this,"timer")>0){
-                setTimerOff()
-            }
+            if (station.bitrates.size>0) {
+                player.setMediaItem(
+                    MediaItem.Builder()
+                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                        .build()
+                )
+                player.prepare()
+                if (AppData.getSettingInt(this, "timer") > 0) {
+                    setTimerOff()
+                }
+            } else stopSelf()
         }
 
         return START_STICKY
+    }
+
+    private fun checkAlarm() {
+        stopService(Intent(this, AlarmService::class.java))
+        if (alarm.repeat.size>0){
+            val cal = Calendar.getInstance()
+            cal.timeInMillis = alarm.dateTime
+            cal.add(Calendar.DATE,1)
+            while (!alarm.repeat.contains("${cal.get(Calendar.DAY_OF_WEEK)}")){
+                cal.add(Calendar.DATE,1)
+            }
+            alarm.dateTime = cal.timeInMillis
+            val intent = Intent(this, AlarmService::class.java)
+            val serviceBundle = Bundle()
+            serviceBundle.putSerializable("alarm", alarm)
+            intent.putExtra("setAlarm", serviceBundle)
+            startService(intent)
+        }
     }
 
     fun setTimerOff() {
