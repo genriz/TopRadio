@@ -6,12 +6,17 @@ import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.app.topradio.R
 import com.app.topradio.databinding.FragmentGenresStationsBinding
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
+import com.app.topradio.ui.adapters.StationsListGridAdapter
+import com.app.topradio.util.AppData
 
-class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
+class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
+    StationsListGridAdapter.OnClickListener {
 
     private lateinit var binding: FragmentGenresStationsBinding
     private lateinit var searchView: SearchView
@@ -22,8 +27,14 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         savedInstanceState: Bundle?
     ): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_genres_stations, container, false)
-        binding.adapter = StationsListAdapter(this).apply {
-            submitList(ArrayList<Station>())
+        if (AppData.getSettingString(requireContext(),"view")
+            ==requireContext().getString(R.string.list)){
+            binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
+            binding.adapter = StationsListAdapter(this)
+        } else {
+            binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
+                StaggeredGridLayoutManager.VERTICAL)
+            binding.adapter = StationsListGridAdapter(this)
         }
         binding.lifecycleOwner = this
         return binding.root
@@ -43,7 +54,7 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener {
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
-                (activity as MainActivity).updatePlayerPager()
+                //(activity as MainActivity).updatePlayerPager()
             }
         })
 

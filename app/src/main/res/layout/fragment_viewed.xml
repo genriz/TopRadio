@@ -4,7 +4,7 @@
     <data>
         <variable
             name="adapter"
-            type="com.app.topradio.ui.adapters.StationsListAdapter"/>
+            type="androidx.recyclerview.widget.ListAdapter"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -15,7 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             setAdapter="@{adapter}"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:layout_marginTop="7dp"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

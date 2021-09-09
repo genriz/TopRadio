@@ -72,6 +72,7 @@ class PlayerService: Service() {
             if (fromAlarm) {
                 alarm = it.getSerializable("alarm") as Alarm
                 checkAlarm()
+                setVolume()
             }
             bitrateIndex = 0
             station.bitrates.forEach { br ->
@@ -201,6 +202,21 @@ class PlayerService: Service() {
         }
 
         return START_STICKY
+    }
+
+    private fun setVolume() {
+        if (AppData.getSettingBoolean(this,"volume")){
+            val volume = 0f
+            player.volume = volume
+            val r: Runnable = object : Runnable {
+                override fun run() {
+                    Handler(Looper.getMainLooper())
+                        .postDelayed(this, 1000)
+
+                }
+            }
+            r.run()
+        }
     }
 
     private fun checkAlarm() {

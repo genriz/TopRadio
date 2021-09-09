@@ -10,6 +10,7 @@ import android.content.ClipData
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.*
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
@@ -111,9 +112,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 BottomSheetBehavior.from(binding.playerView.root).state =
                     BottomSheetBehavior.STATE_HIDDEN
                 viewModel.playerWaiting.value = false
-//                viewModel.station.value!!.isPlaying = false
-//                viewModel.station.value = viewModel.station.value
-//                viewModel.stationPager.value = viewModel.station.value
             }
             if (intent?.action == "player_stop_record") {
                 stopRecord()
@@ -246,7 +244,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         binding.playerView.playerPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                viewModel.stationPager.value = viewModel.stations.value!![position]
+                viewModel.stationPager.value = playerStationsAdapter.currentList[position]
             }
         })
         binding.playerView.playPause.setOnClickListener {
@@ -309,10 +307,24 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     when (newState){
                         BottomSheetBehavior.STATE_COLLAPSED -> {
-                            binding.playerView.playerPager
-                                .setCurrentItem(
-                                    viewModel.getStationPosition(viewModel.station.value!!),
-                                    false)
+                            if (viewModel.station.value!!.id
+                                !=viewModel.stationPager.value!!.id){
+                                viewModel.stationPager.value = viewModel.station.value
+                                if (viewModel.stations.value!!.contains(
+                                        viewModel.getStationById(viewModel.station.value!!))){
+                                    viewModel.stationPager.value = viewModel.station.value
+                                    val position = viewModel.getStationPosition(
+                                        viewModel.stationPager.value!!)
+                                    binding.playerView.playerPager.postDelayed({
+                                        binding.playerView.playerPager
+                                            .setCurrentItem(position, false)
+                                        playerStationsAdapter.notifyItemChanged(position)
+                                    },100)
+                                } else {
+                                    updatePlayerPager()
+                                }
+
+                            }
                             if (service.station.name==""){
                                 BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                                 BottomSheetBehavior.from(binding.playerView.root).state =
@@ -322,6 +334,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                             hideKeyboard()
                         }
                         BottomSheetBehavior.STATE_EXPANDED -> {
+                            if (playerStationsAdapter.currentList.size==1){
+                                binding.playerView.playerPager.postDelayed({
+                                    playerStationsAdapter.notifyItemChanged(0)
+                                },100)
+                            }
                             binding.playerView.playerMini.visibility = View.GONE
                             hideKeyboard()
                         }
@@ -343,8 +360,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     val bottomSheetShiftDown = currentHeight - bottomSheet.top
                     binding.navHostFragment.setPadding(0, 0, 0,
                         (bottomSheet.height + bottomSheetShiftDown))
-                    if (playerStationsAdapter.currentList.size==1)
-                        viewModel.stationPager.value = viewModel.station.value
                 }
 
             })
@@ -352,22 +367,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     @SuppressLint("ClickableViewAccessibility")
     fun showPlayer(withPager: Boolean){
-        binding.playerView.playerPager.adapter = playerStationsAdapter
         val position = viewModel.getStationPosition(viewModel.stationPager.value!!)
         binding.playerView.playerExpanded.visibility = View.VISIBLE
-        playerStationsAdapter.submitList(ArrayList<Station>().apply {
-            addAll(viewModel.stations.value!!)
-        })
+        playerStationsAdapter.submitList(viewModel.stations.value!!)
         binding.playerView.playerPager.postDelayed({
             binding.playerView.playerPager
                 .setCurrentItem(position, false)
             playerStationsAdapter.notifyItemChanged(position)
         },100)
         if (AppData.getSettingBoolean(this,"autoplay")) {
-            viewModel.station.value = viewModel.stationPager.value
-            playStation(viewModel.station.value!!)
-        } else if (service.station.name=="")
-            viewModel.station.value = viewModel.stationPager.value
+            playStation(viewModel.stationPager.value!!)
+        }
         BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
     }
 
@@ -403,8 +413,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     }
 
     fun updatePlayerPager(){
+        viewModel.stationPager.value = viewModel.station.value
         playerStationsAdapter.submitList(ArrayList<Station>()
-            .apply { add (viewModel.station.value!!) })
+            .apply { add (viewModel.stationPager.value!!) })
     }
 
     override fun onSupportNavigateUp(): Boolean {

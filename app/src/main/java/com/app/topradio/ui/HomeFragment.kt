@@ -26,7 +26,6 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
         container: ViewGroup?,
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
-        //binding.adapter = StationsListAdapter(this)
         if (AppData.getSettingString(requireContext(),"view")
             ==requireContext().getString(R.string.list)){
             binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
@@ -48,7 +47,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(it)
-                (activity as MainActivity).updatePlayerPager()
+                //(activity as MainActivity).updatePlayerPager()
             }
         })
 
