@@ -2,8 +2,8 @@ package com.app.topradio.ui
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -16,6 +16,7 @@ import com.app.topradio.model.MainViewModel
 import com.app.topradio.model.Station
 import com.app.topradio.ui.adapters.DayAdapter
 import com.app.topradio.util.AlarmService
+import com.app.topradio.util.AlarmService2
 import com.app.topradio.util.AppData
 import java.util.*
 import kotlin.collections.ArrayList
@@ -47,7 +48,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
         binding.switchAlarm.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveAlarmSetting(requireContext(), isChecked)
             if (isChecked) setAlarm()
-            else requireContext().stopService(Intent(requireContext(), AlarmService::class.java))
+            else requireContext().stopService(Intent(requireContext(), AlarmService2::class.java))
         }
 
         viewModel.getDateTime(requireContext())
@@ -106,18 +107,21 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
     private fun setAlarm() {
         cal.set(Calendar.SECOND,0)
         if (cal.timeInMillis>Calendar.getInstance().timeInMillis) {
-            Log.v("DASD", repeatDays.toString())
             val alarm = Alarm().apply {
                 dateTime = cal.timeInMillis
                 station = stationSelected
                 repeat = repeatDays
             }
-            val intent = Intent(requireContext(), AlarmService::class.java)
+            val intent = Intent(requireContext(), AlarmService2::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("alarm", alarm)
             intent.putExtra("setAlarm", serviceBundle)
-            requireContext().startService(intent)
-        }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                requireContext().startForegroundService(intent)
+            } else {
+                requireContext().startService(intent)
+            }
+        } else binding.switchAlarm.isChecked = false
     }
 
     override fun onStationSelected(station: Station) {

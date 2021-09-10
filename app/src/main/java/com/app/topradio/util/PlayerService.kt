@@ -1,6 +1,5 @@
 package com.app.topradio.util
 
-import android.app.AlarmManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -10,6 +9,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.media.AudioManager
+import android.media.AudioManager.*
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
@@ -27,11 +28,12 @@ import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.DefaultLoadControl.*
+import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileOutputStream
-import java.net.InetAddress
+import java.io.IOException
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,6 +49,8 @@ class PlayerService: Service() {
     var bitrateIndex = 0
     private lateinit var fileOutputStream: FileOutputStream
     val handler = Handler(Looper.getMainLooper())
+    private val audioManager by lazy {getSystemService(Context.AUDIO_SERVICE) as AudioManager}
+    private var defaultVolume = -1
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -72,7 +76,6 @@ class PlayerService: Service() {
             if (fromAlarm) {
                 alarm = it.getSerializable("alarm") as Alarm
                 checkAlarm()
-                setVolume()
             }
             bitrateIndex = 0
             station.bitrates.forEach { br ->
@@ -187,6 +190,16 @@ class PlayerService: Service() {
                 setUseNextAction(false)
                 setUsePreviousAction(false)
             }
+
+            if (fromAlarm) {
+                setVolume()
+            }
+
+            val audioAttr = AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.CONTENT_TYPE_MUSIC)
+                .build()
+            player.setAudioAttributes(audioAttr, true)
             player.playWhenReady = true
             if (station.bitrates.size>0) {
                 player.setMediaItem(
@@ -206,21 +219,31 @@ class PlayerService: Service() {
 
     private fun setVolume() {
         if (AppData.getSettingBoolean(this,"volume")){
-            val volume = 0f
-            player.volume = volume
+            defaultVolume = audioManager.getStreamVolume(STREAM_MUSIC)
+            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_ALARM),
+                FLAG_PLAY_SOUND)
+            player.volume = 0f
             val r: Runnable = object : Runnable {
                 override fun run() {
-                    Handler(Looper.getMainLooper())
-                        .postDelayed(this, 1000)
-
+                    handler.postDelayed(this, 2000)
+                    if (player.volume<1f) {
+                        player.volume += 0.01f
+                    } else {
+                        audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume,
+                            FLAG_PLAY_SOUND)
+                        handler.removeCallbacksAndMessages(null)
+                    }
                 }
             }
             r.run()
+        } else {
+            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_ALARM),
+                FLAG_PLAY_SOUND)
         }
     }
 
     private fun checkAlarm() {
-        stopService(Intent(this, AlarmService::class.java))
+        stopService(Intent(this, AlarmService2::class.java))
         if (alarm.repeat.size>0){
             val cal = Calendar.getInstance()
             cal.timeInMillis = alarm.dateTime
@@ -229,7 +252,7 @@ class PlayerService: Service() {
                 cal.add(Calendar.DATE,1)
             }
             alarm.dateTime = cal.timeInMillis
-            val intent = Intent(this, AlarmService::class.java)
+            val intent = Intent(this, AlarmService2::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("alarm", alarm)
             intent.putExtra("setAlarm", serviceBundle)
@@ -241,15 +264,19 @@ class PlayerService: Service() {
         val timer = Timer()
         val hourlyTask: TimerTask = object : TimerTask() {
             override fun run() {
-                playerNotificationManager.setPlayer(null)
-                player.stop()
-                stopped = true
-                station = Station()
-                stopSelf()
-                LocalBroadcastManager.getInstance(this@PlayerService)
-                    .sendBroadcast(Intent("player_close"))
-                LocalBroadcastManager.getInstance(this@PlayerService)
-                    .sendBroadcast(Intent("player_stop_record"))
+                CoroutineScope(Dispatchers.Main).launch {
+                    AppData.setSettingInt(this@PlayerService, "timer",0)
+                    player.stop()
+                    stopped = true
+                    station = Station()
+                    playerNotificationManager.setPlayer(null)
+                    stopForeground(true)
+                    stopSelf()
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_close"))
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_stop_record"))
+                }
             }
         }
         timer.schedule (hourlyTask, AppData.getSettingInt(this,"timer")*60*1000L)
@@ -308,7 +335,7 @@ class PlayerService: Service() {
 
     fun recordAudio(){
         station.isRecording = true
-        startTimer()
+        startTimerRecord()
         Toast.makeText(this@PlayerService, R.string.start_record, Toast.LENGTH_SHORT).show()
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -327,7 +354,7 @@ class PlayerService: Service() {
         }
     }
 
-    fun startTimer(){
+    fun startTimerRecord(){
         val startTime = System.currentTimeMillis()
         val r: Runnable = object : Runnable {
             override fun run() {
@@ -362,13 +389,10 @@ class PlayerService: Service() {
         player.prepare()
     }
 
+    @Throws(InterruptedException::class, IOException::class)
     fun isInternetAvailable(): Boolean {
-        return try {
-            val ipAddr: InetAddress = InetAddress.getByName("google.com")
-            !ipAddr.equals("")
-        } catch (e: java.lang.Exception) {
-            false
-        }
+        val command = "ping -c 1 google.com"
+        return Runtime.getRuntime().exec(command).waitFor() == 0
     }
 
     inner class PlayerServiceBinder : Binder() {
@@ -390,5 +414,13 @@ class PlayerService: Service() {
                 applicationContext.unregisterReceiver(this)
             }
         }
+    }
+
+    override fun onDestroy() {
+        if (defaultVolume>-1)
+            audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume,
+                FLAG_PLAY_SOUND)
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
     }
 }

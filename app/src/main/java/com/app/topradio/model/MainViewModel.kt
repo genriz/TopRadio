@@ -2,6 +2,7 @@ package com.app.topradio.model
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
     val stationsApi = MutableLiveData<ArrayList<Station>>()
@@ -55,12 +57,14 @@ class MainViewModel: ViewModel() {
     val playlist: LiveData<ArrayList<PlaylistItem>> = playlistApi
     val timerValue = MutableLiveData<Int>()
     val viewTypeValue = MutableLiveData<String>()
+    val viewedStations = ArrayList<Station>()
 
     fun getAllStations(){
         AppData.stations.forEach { station ->
             if (AppData.favorites.contains(station.id.toString()))
                 station.isFavorite = true
         }
+        AppData.stations.sortBy { it.position }
         stationsApi.postValue(AppData.stations)
     }
 
@@ -70,14 +74,6 @@ class MainViewModel: ViewModel() {
             if (station.isFavorite) favorites.add(station)
         }
         stationsFavoritesApp.postValue(favorites)
-    }
-
-    fun getViewedStations(){
-        val viewed = ArrayList<Station>()
-        AppData.stations.forEach {station->
-            if (station.isViewed) viewed.add(station)
-        }
-        stationsApi.postValue(viewed)
     }
 
     fun getGenreStations(genreId: Int){
@@ -188,12 +184,23 @@ class MainViewModel: ViewModel() {
         getFavoriteStations()
     }
 
+    fun getViewedStations(context: Context){
+        viewedStations.clear()
+        viewedStations.addAll(AppData.getStationViewedList(context))
+        stationsApi.postValue(viewedStations)
+    }
+
     fun setViewedStation(context: Context, station: Station){
-        if (station.isViewed)
-            AppData.viewed.add(station.id.toString())
-        else AppData.viewed.remove(station.id.toString())
-        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .edit().putStringSet("viewed", AppData.viewed).apply()
+        var exist = false
+        station.viewedAt = Calendar.getInstance().timeInMillis
+        viewedStations.forEach {
+            if (it.id==station.id){
+                exist = true
+                it.viewedAt = station.viewedAt
+            }
+        }
+        if (!exist) viewedStations.add(station)
+        AppData.saveStationViewedList(context, viewedStations)
     }
 
     fun getTop100(station: String){

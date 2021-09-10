@@ -46,8 +46,12 @@ class ViewedFragment: Fragment(),
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                binding.adapter!!.submitList(it)
-                (activity as MainActivity).updatePlayerPager()
+                binding.adapter!!.submitList(ArrayList<Station>())
+                it.sortByDescending { station -> station.viewedAt }
+                if (it.size>50)
+                    binding.adapter!!.submitList(it.subList(0, 49))
+                else binding.adapter!!.submitList(it)
+                //(activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -57,7 +61,7 @@ class ViewedFragment: Fragment(),
             }
         })
 
-        (activity as MainActivity).viewModel.getViewedStations()
+        (activity as MainActivity).viewModel.getViewedStations(requireContext())
     }
 
     override fun onStationClick(station: Station) {

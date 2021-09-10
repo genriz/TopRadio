@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:allowBackup="true"
@@ -27,11 +29,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.MainActivity"
-            android:configChanges="orientation|screenSize|screenLayout">
+            android:name=".ui.MainActivity">
         </activity>
         <service android:name=".util.PlayerService" />
         <service android:name=".util.AlarmService" />
+        <service android:name=".util.AlarmService2"
+            android:stopWithTask="false"
+            android:enabled="true"
+            android:exported="false"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

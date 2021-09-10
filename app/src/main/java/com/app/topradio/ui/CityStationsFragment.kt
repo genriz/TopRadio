@@ -53,8 +53,9 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
+                binding.adapter!!.submitList(ArrayList<Station>())
                 binding.adapter!!.submitList(it)
-                (activity as MainActivity).updatePlayerPager()
+                //(activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -70,10 +71,7 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
 
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
-        if (!station.isViewed){
-            station.isViewed = true
-            (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
-        }
+        (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
         (activity as MainActivity).viewModel.stationPager.value = station
         (activity as MainActivity).showPlayer(true)
     }

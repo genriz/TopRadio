@@ -15,8 +15,7 @@
             android:id="@+id/stationsList"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            setAdapter="@{adapter}"
-            android:layout_marginTop="7dp"/>
+            setAdapter="@{adapter}"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

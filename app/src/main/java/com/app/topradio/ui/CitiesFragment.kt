@@ -6,6 +6,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.app.topradio.R
 import com.app.topradio.databinding.FragmentCitiesBinding
 import com.app.topradio.model.City
@@ -22,6 +23,7 @@ class CitiesFragment: Fragment(), CitiesListAdapter.OnClickListener {
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_cities,
             container, false)
+        binding.citiesList.layoutManager = LinearLayoutManager(requireContext())
         binding.adapter = CitiesListAdapter(this)
         binding.lifecycleOwner = this
         return binding.root

@@ -21,9 +21,14 @@ class Station: Serializable {
     var playList = ""
     var isFavorite = false
     var isPlaying = false
-    var isViewed = false
+    var viewedAt = 0L
     var track = ""
     var isRecording = false
+
+    override fun equals(other: Any?): Boolean {
+        val station = other as Station
+        return this.id==station.id
+    }
 }
 
 class Bitrate: Serializable {

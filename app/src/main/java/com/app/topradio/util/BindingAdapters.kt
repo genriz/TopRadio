@@ -11,6 +11,8 @@ import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.model.PlaylistItem
+import com.app.topradio.ui.adapters.CitiesListAdapter
+import com.app.topradio.ui.adapters.GenresListAdapter
 import com.app.topradio.ui.adapters.StationsListAdapter
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
@@ -21,7 +23,8 @@ import java.util.*
 fun RecyclerView.bindRecyclerViewAdapter(adapter: RecyclerView.Adapter<*>) {
     this.run {
         this.adapter = adapter
-        if (adapter is StationsListAdapter) {
+        if (adapter is StationsListAdapter||adapter is CitiesListAdapter
+            ||adapter is GenresListAdapter) {
             val itemDecorator = DividerItemDecoration(
                 context, DividerItemDecoration.VERTICAL
             )

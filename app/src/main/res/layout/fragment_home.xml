@@ -16,7 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             setAdapter="@{adapter}"
-            android:layout_marginTop="7dp"
             android:clipToPadding="false"
             android:clipChildren="false"/>
 

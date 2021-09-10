@@ -2,11 +2,15 @@ package com.app.topradio.util
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import com.app.topradio.R
 import com.app.topradio.model.City
 import com.app.topradio.model.Genre
 import com.app.topradio.model.Station
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.Credentials
+import java.lang.reflect.Type
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
@@ -18,7 +22,6 @@ object AppData {
     val cities = ArrayList<City>()
     val genres = ArrayList<Genre>()
     var favorites = HashSet<String>()
-    var viewed = HashSet<String>()
     val bufferSizes = ArrayList<Int>().apply {
         add(500)
         add(5000)
@@ -36,15 +39,6 @@ object AppData {
             .getStringSet("favorites", HashSet<String>())!!)
         stations.forEach {
             if (favorites.contains(it.id.toString())) it.isFavorite = true
-        }
-    }
-
-    fun getViewed(context: Context){
-        viewed.clear()
-        viewed.addAll(context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .getStringSet("viewed", HashSet<String>())!!)
-        stations.forEach {
-            if (viewed.contains(it.id.toString())) it.isViewed = true
         }
     }
 
@@ -76,8 +70,13 @@ object AppData {
     }
 
     fun getSettingBoolean(context: Context, setting: String):Boolean{
-        return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .getBoolean(setting, false)
+        return if (setting=="headphone"){
+            context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+                .getBoolean(setting, true)
+        } else {
+            context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+                .getBoolean(setting, false)
+        }
     }
     fun setSettingBoolean(context: Context, setting: String, enabled: Boolean) {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
@@ -106,5 +105,21 @@ object AppData {
     fun setSettingLong(context: Context, setting: String, value: Long) {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
             .putLong(setting, value).apply()
+    }
+
+    fun saveStationViewedList(context: Context, list: ArrayList<Station>) {
+        val gson = Gson()
+        val json: String = gson.toJson(list)
+        context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()
+            .putString("viewedStations", json).apply()
+    }
+
+    fun getStationViewedList(context: Context): ArrayList<Station> {
+        val gson = Gson()
+        val json: String = context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
+            .getString("viewedStations", "")!!
+        val type: Type = object : TypeToken<ArrayList<Station>>() {}.type
+        return if (json=="") ArrayList()
+            else gson.fromJson(json, type)
     }
 }

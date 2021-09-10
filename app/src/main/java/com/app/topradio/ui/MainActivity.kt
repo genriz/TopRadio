@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.content.ClipData
+import android.content.res.Configuration
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.*
@@ -55,6 +56,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private var bound = false
     private val playerStationsAdapter = PlayerPagerAdapter(this, this)
     private val android11StorageRequest = 3434
+    private var selectedBitrate = 0
+    private var stationBitrate = 0
     private val dialogMenu by lazy { DialogMenu(this, this) }
 
     private val serviceConnection: ServiceConnection = object : ServiceConnection {
@@ -64,7 +67,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             player = binder.player
             if (binder.station.name!="") {
                 bound = true
-                viewModel.station.value = binder.station
+                viewModel.station.value = AppData.getStationById(binder.station.id)
+                viewModel.station.value!!.isPlaying = binder.station.isPlaying
+                viewModel.station.value!!.track = binder.station.track
+                viewModel.station.value!!.bitrates = binder.station.bitrates
+                viewModel.playerRecording.value = binder.station.isRecording
                 viewModel.stationPager.value = viewModel.station.value!!
                 showPlayer(true)
             }
@@ -81,6 +88,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 viewModel.station.value!!.isPlaying =
                     intent.getBooleanExtra("isPlaying", false)
                 viewModel.station.value!!.bitrates = service.station.bitrates
+                service.station.bitrates.forEach {
+                    if (it.isSelected) stationBitrate = service.station.bitrates.indexOf(it)
+                }
                 viewModel.station.value = viewModel.station.value
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
@@ -204,7 +214,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                     BottomSheetBehavior.from(binding.playerView.root).state =
                         BottomSheetBehavior.STATE_HIDDEN
-                    supportActionBar!!.title = viewModel.station.value!!.name
+                    supportActionBar!!.title = viewModel.stationPager.value!!.name
                     supportActionBar!!.setIcon(null)
                 }
                 R.id.menu_alarm -> {
@@ -261,7 +271,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             }
         }
         binding.playerView.playPauseExtended.setOnClickListener {
-            if (service.station.id == viewModel.stationPager.value!!.id) {
+            if (service.station.id == viewModel.stationPager.value!!.id
+                &&stationBitrate==selectedBitrate) {
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
                 else {
@@ -293,9 +304,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 }
             }
         }
-        binding.playerView.playlistExtended.setOnClickListener {
-            navController.navigate(R.id.menu_playlist)
-        }
+
         binding.playerView.root.setOnClickListener {
             binding.playerView.playerExpanded.visibility = View.VISIBLE
             BottomSheetBehavior.from(binding.playerView.root).state =
@@ -378,6 +387,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         if (AppData.getSettingBoolean(this,"autoplay")) {
             playStation(viewModel.stationPager.value!!)
         }
+        if (viewModel.stationPager.value!!.playList!="") {
+            binding.playerView.playlistExtended.visibility = View.VISIBLE
+            binding.playerView.playlistExtended.setOnClickListener {
+                navController.navigate(R.id.menu_playlist)
+            }
+        } else binding.playerView.playlistExtended.visibility = View.GONE
         BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
     }
 
@@ -413,7 +428,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     }
 
     fun updatePlayerPager(){
-        viewModel.stationPager.value = viewModel.station.value
         playerStationsAdapter.submitList(ArrayList<Station>()
             .apply { add (viewModel.stationPager.value!!) })
     }
@@ -533,6 +547,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     }
 
     override fun onBitrateClick(position: Int) {
+        selectedBitrate = position
         if (viewModel.stationPager.value!!.isPlaying) {
             service.setBitrate(position)
             viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
@@ -559,9 +574,28 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     override fun onMenuPositionClick(position: Int) {
         when (position){
             0 -> navController.navigate(R.id.menu_alarm)
+            1 -> openAddStation()
+            2 -> openFeedback()
             3 -> navController.navigate(R.id.menu_settings)
             4 -> finish()
         }
+    }
+
+    private fun openFeedback() {
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse("https://play.google.com/store/apps/details?id=ru.topradio")
+        startActivity(Intent.createChooser(intent, "Complete action using"))
+    }
+
+    private fun openAddStation() {
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse("https://top-radio.ru/dobavit-radio")
+        startActivity(Intent.createChooser(intent, "Complete action using"))
+    }
+
+    override fun onDestroy() {
+        unbindService(serviceConnection)
+        super.onDestroy()
     }
 
 }
