@@ -29,7 +29,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
         if (AppData.getSettingString(requireContext(),"view")
             ==requireContext().getString(R.string.list)){
             binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
-            binding.adapter = StationsListAdapter(this)
+            binding.adapter = StationsListAdapter(requireContext(),this)
         } else {
             binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
                 StaggeredGridLayoutManager.VERTICAL)
@@ -46,9 +46,11 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stationsFavorites.observe(viewLifecycleOwner,{
             if (it!=null){
-                binding.adapter!!.submitList(ArrayList<Station>())
+                if ((activity as MainActivity).scrollToFirst) {
+                    binding.adapter!!.submitList(ArrayList<Station>())
+                    (activity as MainActivity).scrollToFirst = false
+                }
                 binding.adapter!!.submitList(it)
-                //(activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -70,14 +72,13 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
+        (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).showPlayer(true)
+        (activity as MainActivity).showPlayer(false)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {
-        (activity as MainActivity).viewModel.stationsFavorites.value!!.remove(station)
         station.isFavorite = !station.isFavorite
-        binding.adapter!!.notifyItemRemoved(position)
         (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
     }
 
@@ -121,7 +122,6 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
     override fun onDetach() {
         (activity as MainActivity).viewModel.clearSearchStationsFavorites()
-        //(activity as MainActivity).updatePlayerPager()
         super.onDetach()
     }
 }

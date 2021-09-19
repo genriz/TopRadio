@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -15,8 +16,8 @@ import com.app.topradio.model.AlarmViewModel
 import com.app.topradio.model.MainViewModel
 import com.app.topradio.model.Station
 import com.app.topradio.ui.adapters.DayAdapter
+import com.app.topradio.ui.dialogs.DialogStations
 import com.app.topradio.util.AlarmService
-import com.app.topradio.util.AlarmService2
 import com.app.topradio.util.AppData
 import java.util.*
 import kotlin.collections.ArrayList
@@ -26,7 +27,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
     private lateinit var binding: FragmentAlarmBinding
     private val viewModel by lazy { ViewModelProvider(this).get(AlarmViewModel::class.java) }
     private val mainViewModel by lazy { ViewModelProvider(this).get(MainViewModel::class.java) }
-    private val dialog by lazy {DialogStations(requireContext(), ArrayList(), this)}
+    private val dialog by lazy { DialogStations(requireContext(), ArrayList(), this) }
     private val cal = Calendar.getInstance()
     private var stationSelected = Station()
     private var repeatDays = HashSet<String>()
@@ -48,7 +49,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
         binding.switchAlarm.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveAlarmSetting(requireContext(), isChecked)
             if (isChecked) setAlarm()
-            else requireContext().stopService(Intent(requireContext(), AlarmService2::class.java))
+            else requireContext().stopService(Intent(requireContext(), AlarmService::class.java))
         }
 
         viewModel.getDateTime(requireContext())
@@ -106,13 +107,13 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
 
     private fun setAlarm() {
         cal.set(Calendar.SECOND,0)
-        if (cal.timeInMillis>Calendar.getInstance().timeInMillis) {
+        if (cal.timeInMillis>Calendar.getInstance().timeInMillis||repeatDays.size>0) {
             val alarm = Alarm().apply {
                 dateTime = cal.timeInMillis
                 station = stationSelected
                 repeat = repeatDays
             }
-            val intent = Intent(requireContext(), AlarmService2::class.java)
+            val intent = Intent(requireContext(), AlarmService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("alarm", alarm)
             intent.putExtra("setAlarm", serviceBundle)
@@ -121,7 +122,10 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
             } else {
                 requireContext().startService(intent)
             }
-        } else binding.switchAlarm.isChecked = false
+        } else {
+            binding.switchAlarm.isChecked = false
+            Toast.makeText(requireContext(), R.string.alarm_wrong_time, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onStationSelected(station: Station) {

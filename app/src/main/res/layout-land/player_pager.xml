@@ -29,6 +29,12 @@
                 android:layout_height="match_parent"
                 android:id="@+id/playerExpanded"
                 android:background="@color/back_main_container">
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/playerPager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
                 <RelativeLayout
                     android:id="@+id/toolbarPlayer"
                     android:layout_width="match_parent"
@@ -56,97 +62,107 @@
                         android:layout_marginEnd="18dp"/>
                 </RelativeLayout>
 
-                <androidx.viewpager2.widget.ViewPager2
-                    android:id="@+id/playerPager"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
 
-                <androidx.cardview.widget.CardView
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:id="@+id/recordExtended"
-                    app:layout_constraintHeight_percent="0.18"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintTop_toTopOf="@id/playPauseExtended"
-                    app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
-                    app:layout_constraintEnd_toStartOf="@id/playPauseExtended"
-                    app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
-                    android:layout_marginEnd="27dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_record_off"
-                        setRecordingIconExtended="@{viewModel.playerRecording}" />
-                </androidx.cardview.widget.CardView>
-
-                <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="@id/recordExtended"
-                    app:layout_constraintEnd_toEndOf="@id/recordExtended"
-                    app:layout_constraintTop_toBottomOf="@id/recordExtended"
-                    android:layout_marginTop="12dp"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:text="@{viewModel.recordTime}"/>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:id="@+id/playPauseExtended"
-                    app:layout_constraintHeight_percent="0.23"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/playlistExtended"
-                    app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
-                    android:layout_marginEnd="27dp"
-                    android:layout_marginBottom="47dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_play_extended"
-                        setPlayingIconExtended="@{viewModel.stationPager.isPlaying}" />
-                </androidx.cardview.widget.CardView>
-                <ProgressBar
-                    android:id="@+id/progressPlayerExtended"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    app:layout_constraintTop_toTopOf="@id/playPauseExtended"
-                    app:layout_constraintEnd_toEndOf="@id/playPauseExtended"
-                    app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
-                    app:layout_constraintStart_toStartOf="@id/playPauseExtended"
-                    android:indeterminateTint="@color/play_waiting"
-                    android:visibility="@{viewModel.playerWaiting?View.VISIBLE:View.GONE}"
-                    android:layout_marginTop="-22dp"
-                    android:layout_marginBottom="-22dp"
-                    android:layout_marginStart="-22dp"
-                    android:layout_marginEnd="-22dp"/>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:id="@+id/playlistExtended"
-                    app:layout_constraintHeight_percent="0.18"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintTop_toTopOf="@id/playPauseExtended"
-                    app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
+                    app:layout_constraintWidth_percent="0.4"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
-                    android:layout_marginEnd="60dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_playlist" />
-                </androidx.cardview.widget.CardView>
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginEnd="66dp"
+                    android:clipChildren="false"
+                    android:padding="16dp"
+                    android:clipToPadding="false">
+                    <androidx.cardview.widget.CardView
+                        android:clipToPadding="false"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/recordExtended"
+                        app:layout_constraintWidth_percent="0.24"
+                        app:layout_constraintDimensionRatio="1:1"
+                        app:layout_constraintTop_toTopOf="@id/playPauseExtended"
+                        app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
+                        app:layout_constraintEnd_toStartOf="@id/playPauseExtended"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:cardElevation="12dp"
+                        app:cardCornerRadius="100dp"
+                        android:layout_marginEnd="27dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_record_off"
+                            setRecordingIconExtended="@{viewModel.playerRecording}" />
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintStart_toStartOf="@id/recordExtended"
+                        app:layout_constraintEnd_toEndOf="@id/recordExtended"
+                        app:layout_constraintTop_toBottomOf="@id/recordExtended"
+                        android:layout_marginTop="12dp"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:text="@{viewModel.recordTime}"/>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/playPauseExtended"
+                        app:layout_constraintWidth_percent="0.30"
+                        app:layout_constraintDimensionRatio="1:1"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/recordExtended"
+                        app:layout_constraintEnd_toStartOf="@id/playlistExtended"
+                        app:cardElevation="16dp"
+                        app:cardCornerRadius="100dp"
+                        android:layout_marginEnd="27dp"
+                        android:layout_marginBottom="47dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_play_extended"
+                            setPlayingIconExtended="@{viewModel.stationPager.isPlaying}" />
+                    </androidx.cardview.widget.CardView>
+                    <ProgressBar
+                        android:id="@+id/progressPlayerExtended"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        app:layout_constraintTop_toTopOf="@id/playPauseExtended"
+                        app:layout_constraintEnd_toEndOf="@id/playPauseExtended"
+                        app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
+                        app:layout_constraintStart_toStartOf="@id/playPauseExtended"
+                        android:indeterminateTint="@color/play_waiting"
+                        android:visibility="@{viewModel.playerWaiting?View.VISIBLE:View.GONE}"
+                        android:layout_marginTop="-22dp"
+                        android:layout_marginBottom="-22dp"
+                        android:layout_marginStart="-22dp"
+                        android:layout_marginEnd="-22dp"/>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:id="@+id/playlistExtended"
+                        app:layout_constraintWidth_percent="0.24"
+                        app:layout_constraintDimensionRatio="1:1"
+                        app:layout_constraintTop_toTopOf="@id/playPauseExtended"
+                        app:layout_constraintBottom_toBottomOf="@id/playPauseExtended"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/playPauseExtended"
+                        app:cardElevation="12dp"
+                        app:cardCornerRadius="100dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_playlist" />
+                    </androidx.cardview.widget.CardView>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
-                android:visibility="gone"
                 app:layout_constraintTop_toTopOf="parent"
                 android:id="@+id/playerMini"
                 android:background="@color/small_player_back">

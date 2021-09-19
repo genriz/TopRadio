@@ -1,4 +1,4 @@
-package com.app.topradio.ui
+package com.app.topradio.ui.dialogs
 
 import android.app.Dialog
 import android.content.Context
@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Window
-import android.view.WindowManager
 import androidx.databinding.DataBindingUtil
 import com.app.topradio.R
 import com.app.topradio.databinding.TopMenuLayoutBinding

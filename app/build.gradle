@@ -59,5 +59,7 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'com.github.corouteam:GlideToVectorYou:v2.0.0'
     implementation 'pub.devrel:easypermissions:2.0.1'
+    implementation 'com.google.android.gms:play-services-ads:20.3.0'
+    implementation project(':nativetemplates')
 
 }

@@ -70,14 +70,18 @@ class GenresFragment: Fragment(), GenresListAdapter.OnClickListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
-            .navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_favorite) {
+            (activity as MainActivity).navController.navigate(R.id.favorites)
+            (activity as MainActivity).scrollToFirst = true
+        }
         if (item.itemId==R.id.app_bar_menu)
             (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)
     }
 
     override fun onGenreClick(genre: Genre) {
+        (activity as MainActivity).scrollToFirst = true
+        (activity as MainActivity).hideKeyboard()
         val bundle = Bundle()
         bundle.putInt("genreId", genre.id)
         bundle.putString("genreName", genre.name)

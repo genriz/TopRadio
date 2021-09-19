@@ -1,4 +1,4 @@
-package com.app.topradio.ui
+package com.app.topradio.ui.dialogs
 
 import android.app.Dialog
 import android.content.Context
@@ -9,7 +9,6 @@ import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.Window
 import android.view.WindowManager
-import androidx.appcompat.widget.SearchView
 import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
 import com.app.topradio.R
@@ -19,7 +18,8 @@ import com.app.topradio.ui.adapters.StationsDialogListAdapter
 
 
 class DialogStations(context:Context, private val stations: ArrayList<Station>,
-                     private val listener: OnDialogStationClick):
+                     private val listener: OnDialogStationClick
+):
     Dialog(context, R.style.Theme_Dialog), StationsDialogListAdapter.OnClickListener {
 
     private val binding by lazy { DataBindingUtil

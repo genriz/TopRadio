@@ -7,6 +7,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.app.topradio.R
 import com.app.topradio.databinding.FragmentSettingsBinding
+import com.app.topradio.ui.dialogs.DialogSeekbar
+import com.app.topradio.ui.dialogs.DialogViewType
 import com.app.topradio.util.AppData
 
 class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange,

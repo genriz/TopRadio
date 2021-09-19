@@ -18,12 +18,13 @@ class Station: Serializable {
     @SerializedName("ge")
     var genres = ArrayList<Int>()
     @SerializedName("pl")
-    var playList = ""
+    var playList: String? = null
     var isFavorite = false
     var isPlaying = false
     var viewedAt = 0L
     var track = ""
     var isRecording = false
+    var isAds = false
 
     override fun equals(other: Any?): Boolean {
         val station = other as Station

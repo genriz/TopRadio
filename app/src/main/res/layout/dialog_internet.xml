@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bitrate_selected"
+    android:theme="@style/Theme_Dialog">
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:fontFamily="@font/roboto_medium"
+        android:textColor="@color/white"
+        android:text="@string/no_internet"
+        android:gravity="center"
+        android:padding="12dp"/>
+    <View
+        android:id="@+id/dialog_line"
+        android:layout_below="@id/dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/white"/>
+    <TextView
+        android:id="@+id/dialog_text"
+        android:layout_below="@id/dialog_line"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:fontFamily="@font/roboto"
+        android:textColor="@color/white"
+        android:text="@string/internet_info"
+        android:paddingTop="6dp"
+        android:paddingRight="6dp"
+        android:paddingLeft="6dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dialog_text"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="30dp">
+        <TextView
+            android:id="@+id/txtClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:fontFamily="@font/roboto"
+            android:textColor="@color/white"
+            android:padding="12dp"
+            android:text="OK"/>
+    </LinearLayout>
+</RelativeLayout>

@@ -32,12 +32,12 @@ class AlarmViewModel: ViewModel() {
 
     fun getHour(context: Context): Int{
         var hour = AppData.getSettingInt(context,"hour")
-        if (hour in 0..0) hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        if (hour in -1..-1) hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         return hour
     }
     fun getMinute(context: Context): Int{
         var minute = AppData.getSettingInt(context,"minute")
-        if (minute in 0..0) minute = Calendar.getInstance().get(Calendar.MINUTE)
+        if (minute in -1..-1) minute = Calendar.getInstance().get(Calendar.MINUTE)
         return minute
     }
 

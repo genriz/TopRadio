@@ -30,7 +30,7 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
         if (AppData.getSettingString(requireContext(),"view")
             ==requireContext().getString(R.string.list)){
             binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
-            binding.adapter = StationsListAdapter(this)
+            binding.adapter = StationsListAdapter(requireContext(),this)
         } else {
             binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
                 StaggeredGridLayoutManager.VERTICAL)
@@ -53,9 +53,11 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                binding.adapter!!.submitList(ArrayList<Station>())
+                if ((activity as MainActivity).scrollToFirst) {
+                    binding.adapter!!.submitList(ArrayList<Station>())
+                    (activity as MainActivity).scrollToFirst = false
+                }
                 binding.adapter!!.submitList(it)
-                //(activity as MainActivity).updatePlayerPager()
             }
         })
 
@@ -115,8 +117,10 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
             searchView.onActionViewCollapsed()
             (activity as MainActivity).viewModel.clearSearchCities()
         }
-        if (item.itemId==R.id.app_bar_favorite) (activity as MainActivity)
-            .navController.navigate(R.id.favorites)
+        if (item.itemId==R.id.app_bar_favorite) {
+            (activity as MainActivity).navController.navigate(R.id.favorites)
+            (activity as MainActivity).scrollToFirst = true
+        }
         if (item.itemId==R.id.app_bar_menu)
             (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)

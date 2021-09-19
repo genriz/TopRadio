@@ -51,6 +51,7 @@ class PlayerService: Service() {
     val handler = Handler(Looper.getMainLooper())
     private val audioManager by lazy {getSystemService(Context.AUDIO_SERVICE) as AudioManager}
     private var defaultVolume = -1
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -74,6 +75,12 @@ class PlayerService: Service() {
             station = it.getSerializable("station") as Station
             val fromAlarm = it.getBoolean("fromAlarm")
             if (fromAlarm) {
+                wakeLock =
+                    (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+                        newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PlayerService::lock").apply {
+                            acquire(5000)
+                        }
+                    }
                 alarm = it.getSerializable("alarm") as Alarm
                 checkAlarm()
             }
@@ -243,7 +250,7 @@ class PlayerService: Service() {
     }
 
     private fun checkAlarm() {
-        stopService(Intent(this, AlarmService2::class.java))
+        stopService(Intent(this, AlarmService::class.java))
         if (alarm.repeat.size>0){
             val cal = Calendar.getInstance()
             cal.timeInMillis = alarm.dateTime
@@ -252,7 +259,7 @@ class PlayerService: Service() {
                 cal.add(Calendar.DATE,1)
             }
             alarm.dateTime = cal.timeInMillis
-            val intent = Intent(this, AlarmService2::class.java)
+            val intent = Intent(this, AlarmService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("alarm", alarm)
             intent.putExtra("setAlarm", serviceBundle)
@@ -284,6 +291,7 @@ class PlayerService: Service() {
 
 
     private fun handlePlayerError() {
+        Log.v("DASD", "${isInternetAvailable()}")
         if (isInternetAvailable()) {
             bitrateIndex++
             if (bitrateIndex < station.bitrates.size) {
@@ -305,12 +313,18 @@ class PlayerService: Service() {
                 applicationContext.registerReceiver(mConnReceiver,
                     IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
             } else {
-                playerNotificationManager.setPlayer(null)
-                station = Station()
                 LocalBroadcastManager.getInstance(this@PlayerService)
                     .sendBroadcast(Intent("player_close"))
                 LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("no_internet"))
+                LocalBroadcastManager.getInstance(this@PlayerService)
                     .sendBroadcast(Intent("player_stop_record"))
+                player.stop()
+                stopped = true
+                station = Station()
+                playerNotificationManager.setPlayer(null)
+                stopForeground(true)
+                stopSelf()
             }
         }
     }

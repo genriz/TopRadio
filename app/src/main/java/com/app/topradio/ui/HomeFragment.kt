@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.app.topradio.R
 import com.app.topradio.databinding.FragmentHomeBinding
-import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.model.Station
+import com.app.topradio.ui.adapters.StationsListAdapter
 import com.app.topradio.ui.adapters.StationsListGridAdapter
 import com.app.topradio.util.AppData
 
@@ -19,7 +19,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
     StationsListGridAdapter.OnClickListener {
 
     private lateinit var binding: FragmentHomeBinding
-    private lateinit var searchView: SearchView
+    private var searchView: SearchView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,7 +29,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
         if (AppData.getSettingString(requireContext(),"view")
             ==requireContext().getString(R.string.list)){
             binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
-            binding.adapter = StationsListAdapter(this)
+            binding.adapter = StationsListAdapter(requireContext(),this)
         } else {
             binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
                 StaggeredGridLayoutManager.VERTICAL)
@@ -46,10 +46,24 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                binding.adapter!!.submitList(ArrayList<Station>())
-                binding.adapter!!.submitList(it)
-                binding.stationsList.scrollToPosition(0)
-                //(activity as MainActivity).updatePlayerPager()
+                var adsPos = 0
+                val stationsWithAds = ArrayList<Station>()
+                it.forEach { station ->
+                    if (adsPos == 19 || adsPos == 0) {
+                        val stationItem = Station()
+                        stationItem.isAds = true
+                        stationsWithAds.add(stationItem)
+                        adsPos = 0
+                    }
+                    station.isAds = false
+                    stationsWithAds.add(station)
+                    adsPos++
+                }
+                if ((activity as MainActivity).scrollToFirst) {
+                    binding.adapter!!.submitList(ArrayList<Station>())
+                    (activity as MainActivity).scrollToFirst = false
+                }
+                binding.adapter!!.submitList(stationsWithAds)
             }
         })
 
@@ -65,8 +79,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
             .onBackPressedDispatcher
             .addCallback(requireActivity(), object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (!searchView.isIconified) {
-                        searchView.onActionViewCollapsed()
+                    if (searchView!=null&&!searchView!!.isIconified) {
+                        searchView?.onActionViewCollapsed()
                     } else {
                         remove()
                         activity?.onBackPressed()
@@ -91,7 +105,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.main_menu, menu)
         searchView = menu.findItem(R.id.app_bar_search).actionView as SearchView
-        searchView.apply {
+        searchView?.apply {
             maxWidth = Integer.MAX_VALUE
             queryHint = getString(R.string.search)
             setOnQueryTextListener(object: SearchView.OnQueryTextListener{
@@ -101,14 +115,18 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
                 override fun onQueryTextChange(newText: String): Boolean {
                     if (newText.length>2)
                         (activity as MainActivity).viewModel.searchStations(newText)
-                    else if (newText.isEmpty()) (activity as MainActivity)
-                        .viewModel.clearSearchStations()
+                    else
+                        if (newText.isEmpty()) {
+                            (activity as MainActivity).viewModel.clearSearchStations()
+                            binding.stationsList.scrollToPosition(0)
+                        }
                     return true
                 }
 
             })
             setOnCloseListener {
                 (activity as MainActivity).viewModel.clearSearchStations()
+                binding.stationsList.scrollToPosition(0)
                 onActionViewCollapsed()
                 true
             }
@@ -116,8 +134,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId==R.id.app_bar_favorite)
+        if (item.itemId==R.id.app_bar_favorite) {
             (activity as MainActivity).navController.navigate(R.id.favorites)
+            (activity as MainActivity).scrollToFirst = true
+        }
         if (item.itemId==R.id.app_bar_menu)
             (activity as MainActivity).showMenuDialog()
         return super.onOptionsItemSelected(item)

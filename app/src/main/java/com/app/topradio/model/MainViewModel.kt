@@ -2,25 +2,23 @@ package com.app.topradio.model
 
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.app.topradio.util.AppData
 import com.app.topradio.api.ApiRadio
+import com.app.topradio.ui.dialogs.DialogInternet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 class MainViewModel: ViewModel() {
-    val stationsApi = MutableLiveData<ArrayList<Station>>()
+    private val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
-    val stationsFavoritesApp = MutableLiveData<ArrayList<Station>>()
+    private val stationsFavoritesApp = MutableLiveData<ArrayList<Station>>()
     val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
     val station = MutableLiveData<Station>().apply { value = Station() }
     val stationPager = MutableLiveData<Station>().apply { value = Station() }
@@ -57,7 +55,8 @@ class MainViewModel: ViewModel() {
     val playlist: LiveData<ArrayList<PlaylistItem>> = playlistApi
     val timerValue = MutableLiveData<Int>()
     val viewTypeValue = MutableLiveData<String>()
-    val viewedStations = ArrayList<Station>()
+    private val viewedStations = ArrayList<Station>()
+    val state = MutableLiveData<State>().apply { value = State.STATE_OK }
 
     fun getAllStations(){
         AppData.stations.forEach { station ->
@@ -110,6 +109,18 @@ class MainViewModel: ViewModel() {
             stations.value?.forEach {station_ ->
                 if (station_.id == station.id) {
                     position = stations.value!!.indexOf(station_)
+                }
+            }
+            position
+        } else 0
+    }
+
+    fun getStationFavoritesPosition(station: Station): Int{
+        return if (stationsFavorites.value!=null){
+            var position = 0
+            stationsFavorites.value?.forEach {station_ ->
+                if (station_.id == station.id) {
+                    position = stationsFavorites.value!!.indexOf(station_)
                 }
             }
             position
@@ -187,6 +198,7 @@ class MainViewModel: ViewModel() {
     fun getViewedStations(context: Context){
         viewedStations.clear()
         viewedStations.addAll(AppData.getStationViewedList(context))
+        viewedStations.sortByDescending { station -> station.viewedAt }
         stationsApi.postValue(viewedStations)
     }
 
@@ -205,28 +217,40 @@ class MainViewModel: ViewModel() {
 
     fun getTop100(station: String){
         job = CoroutineScope(Dispatchers.IO).launch {
-            val response = ApiRadio().getApi()
-                .getTop100("https://playlists8.auto-messenger.ru/storage/playlists/" +
-                        "$station/top-songs/100.json",
-                    AppData.auth)
-            if (response.isSuccessful&&response.body()!=null){
-                val array = response.body()!!
-                array.sortByDescending { it.total }
-                playlistApi.postValue(array)
+            try {
+                val response = ApiRadio().getApi()
+                    .getTop100(
+                        "https://playlists8.auto-messenger.ru/storage/playlists/" +
+                                "$station/top-songs/100.json",
+                        AppData.auth
+                    )
+                if (response.isSuccessful && response.body() != null) {
+                    val array = response.body()!!
+                    array.sortByDescending { it.total }
+                    playlistApi.postValue(array)
+                }
+            } catch (e:Exception){
+                state.postValue(State.STATE_FAILED)
             }
         }
     }
 
     fun getPlaylist(station: String, date: String){
         job = CoroutineScope(Dispatchers.IO).launch {
-            val response = ApiRadio().getApi()
-                .getTop100("https://playlists8.auto-messenger.ru/storage/playlists/" +
-                        "$station/$date/index.json",
-                    AppData.auth)
-            if (response.isSuccessful&&response.body()!=null){
-                val array = response.body()!!
-                array.sortByDescending { it.start_at }
-                playlistApi.postValue(array)
+            try {
+                val response = ApiRadio().getApi()
+                    .getTop100(
+                        "https://playlists8.auto-messenger.ru/storage/playlists/" +
+                                "$station/$date/index.json",
+                        AppData.auth
+                    )
+                if (response.isSuccessful && response.body() != null) {
+                    val array = response.body()!!
+                    array.sortByDescending { it.start_at }
+                    playlistApi.postValue(array)
+                }
+            } catch (e:Exception){
+                state.postValue(State.STATE_FAILED)
             }
         }
     }

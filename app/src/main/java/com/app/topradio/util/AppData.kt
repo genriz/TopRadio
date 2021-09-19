@@ -84,7 +84,7 @@ object AppData {
     }
     fun getSettingInt(context: Context, setting: String):Int{
         return context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
-            .getInt(setting, 0)
+            .getInt(setting, -1)
     }
     fun setSettingInt(context: Context, setting: String, value: Int) {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE).edit()

@@ -32,8 +32,7 @@
             android:name=".ui.MainActivity">
         </activity>
         <service android:name=".util.PlayerService" />
-        <service android:name=".util.AlarmService" />
-        <service android:name=".util.AlarmService2"
+        <service android:name=".util.AlarmService"
             android:stopWithTask="false"
             android:enabled="true"
             android:exported="false"/>
@@ -46,6 +45,9 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8287740228306736~7921985800"/>
     </application>
 
 </manifest>

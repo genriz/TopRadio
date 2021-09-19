@@ -47,8 +47,10 @@ fun RecyclerView.setAdapterBitrates(adapter: RecyclerView.Adapter<*>) {
 }
 
 @BindingAdapter("setIcon")
-fun setIcon (view: ImageView, path: String){
-    Glide.with(view).load("https://top-radio.ru/assets/image/radio/180/$path").into(view)
+fun setIcon (view: ImageView, path: String?){
+    path?.let{
+        Glide.with(view).load("https://top-radio.ru/assets/image/radio/180/$it").into(view)
+    }
 }
 
 @BindingAdapter("setFavorite")

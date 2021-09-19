@@ -1,4 +1,4 @@
-package com.app.topradio.ui
+package com.app.topradio.ui.dialogs
 
 import android.app.Dialog
 import android.content.Context
