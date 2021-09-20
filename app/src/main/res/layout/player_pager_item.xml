@@ -5,10 +5,10 @@
     <data>
         <variable
             name="station"
-            type="com.app.topradio.model.Station"/>
+            type="ru.topradio.model.Station"/>
         <variable
             name="adapter"
-            type="com.app.topradio.ui.adapters.BitratesListAdapter"/>
+            type="ru.topradio.ui.adapters.BitratesListAdapter"/>
         <import type="android.view.View"/>
     </data>
 

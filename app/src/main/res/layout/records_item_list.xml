@@ -3,7 +3,7 @@
     <data>
         <variable
             name="record"
-            type="com.app.topradio.model.Record"/>
+            type="ru.topradio.model.Record"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"

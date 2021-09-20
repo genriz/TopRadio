@@ -3,7 +3,7 @@
     <data>
         <variable
             name="bitrate"
-            type="com.app.topradio.model.Bitrate" />
+            type="ru.topradio.model.Bitrate" />
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"

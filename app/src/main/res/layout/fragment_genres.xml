@@ -4,7 +4,7 @@
     <data>
         <variable
             name="adapter"
-            type="com.app.topradio.ui.adapters.GenresListAdapter"/>
+            type="ru.topradio.ui.adapters.GenresListAdapter"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

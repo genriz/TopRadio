@@ -5,47 +5,47 @@
     android:id="@+id/nav_graph"
     app:startDestination="@+id/menu_home">
     <fragment
-        android:name="com.app.topradio.ui.HomeFragment"
+        android:name="ru.topradio.ui.HomeFragment"
         android:id="@+id/menu_home">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.FavoritesFragment"
+        android:name="ru.topradio.ui.FavoritesFragment"
         android:id="@+id/favorites">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.GenresFragment"
+        android:name="ru.topradio.ui.GenresFragment"
         android:id="@+id/menu_genres">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.GenresStationsFragment"
+        android:name="ru.topradio.ui.GenresStationsFragment"
         android:id="@+id/genresStations">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.CitiesFragment"
+        android:name="ru.topradio.ui.CitiesFragment"
         android:id="@+id/menu_cities">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.CityStationsFragment"
+        android:name="ru.topradio.ui.CityStationsFragment"
         android:id="@+id/citiesStations">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.ViewedFragment"
+        android:name="ru.topradio.ui.ViewedFragment"
         android:id="@+id/menu_viewed">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.RecordsFragment"
+        android:name="ru.topradio.ui.RecordsFragment"
         android:id="@+id/menu_records">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.SettingsFragment"
+        android:name="ru.topradio.ui.SettingsFragment"
         android:id="@+id/menu_settings">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.PlaylistsFragment"
+        android:name="ru.topradio.ui.PlaylistsFragment"
         android:id="@+id/menu_playlist">
     </fragment>
     <fragment
-        android:name="com.app.topradio.ui.AlarmFragment"
+        android:name="ru.topradio.ui.AlarmFragment"
         android:id="@+id/menu_alarm">
     </fragment>
 </navigation>

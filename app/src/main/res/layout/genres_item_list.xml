@@ -3,7 +3,7 @@
     <data>
         <variable
             name="genre"
-            type="com.app.topradio.model.Genre"/>
+            type="ru.topradio.model.Genre"/>
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         xmlns:android="http://schemas.android.com/apk/res/android"

@@ -3,7 +3,7 @@
     <data>
         <variable
             name="adapter"
-            type="com.app.topradio.ui.adapters.StationsDialogListAdapter"/>
+            type="ru.topradio.ui.adapters.StationsDialogListAdapter"/>
     </data>
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
