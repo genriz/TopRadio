@@ -145,7 +145,7 @@ fun setDateText (view: TextView, name: String){
 
 @BindingAdapter("setTimerText")
 fun setTimerText (view: TextView, timer: Int){
-    val timeTxt = if (timer==0) view.context.getString(R.string.off)
+    val timeTxt = if (timer<=0) view.context.getString(R.string.off)
     else "$timer ${view.context.getString(R.string.min)}"
     view.text = timeTxt
 }
