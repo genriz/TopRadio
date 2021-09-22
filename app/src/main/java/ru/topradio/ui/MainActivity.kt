@@ -482,19 +482,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         if (!EasyPermissions.hasPermissions(
                 this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.MANAGE_EXTERNAL_STORAGE)){
+                Manifest.permission.READ_EXTERNAL_STORAGE)){
             EasyPermissions.requestPermissions(
                 this,
-                "Movies Portal needs permission.\nPress OK to continue.",
+                "Top Radio needs permission.\nPress OK to continue.",
                 282,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+                Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
             if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.R&&!Environment.isExternalStorageManager()){
                 val intent = Intent("android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION")
-                intent.data = Uri.parse("package:com.app.mdo")
+                intent.data = Uri.parse("package:ru.topradio")
                 startActivityForResult(intent, android11StorageRequest)
             } else recordAudio()
         }
@@ -530,7 +528,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.R&&!Environment.isExternalStorageManager()){
             val intent = Intent("android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION")
-            intent.data = Uri.parse("package:com.app.mdo")
+            intent.data = Uri.parse("package:ru.topradio")
             startActivityForResult(intent, android11StorageRequest)
         } else recordAudio()
     }
@@ -618,7 +616,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             1 -> openAddStation()
             2 -> openFeedback()
             3 -> navController.navigate(R.id.menu_settings)
-            4 -> finish()
+            4 -> {
+                service.exitService()
+                finish()
+            }
         }
     }
 

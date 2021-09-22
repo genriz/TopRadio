@@ -430,6 +430,15 @@ class PlayerService: Service() {
         }
     }
 
+    fun exitService(){
+        player.stop()
+        stopped = true
+        station = Station()
+        playerNotificationManager.setPlayer(null)
+        stopForeground(true)
+        stopSelf()
+    }
+
     override fun onDestroy() {
         if (defaultVolume>-1)
             audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume,

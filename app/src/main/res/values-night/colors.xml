@@ -8,7 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="white_semi">#A3FFFFFF</color>
-    <color name="white_semi2">#DCFFFFFF</color>
+    <color name="bars_semi2">#DC0D1834</color>
 
     <color name="back_main">#0F1E45</color>
     <color name="back_main_trans">#2A0F1E45</color>
@@ -18,6 +18,7 @@
     <color name="menu_default">#CDD6EC</color>
     <color name="divider">#1E2B4D</color>
     <color name="small_player_back">#0F1E45</color>
+    <color name="small_player_line">#7C1B326C</color>
     <color name="startGradient">#46A614</color>
     <color name="endGradient">#7A14A6</color>
     <color name="bitrate_default">#0D1834</color>

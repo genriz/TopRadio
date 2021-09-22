@@ -46,24 +46,28 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
-                var adsPos = 0
-                val stationsWithAds = ArrayList<Station>()
-                it.forEach { station ->
-                    if (adsPos == 19 || adsPos == 0) {
-                        val stationItem = Station()
-                        stationItem.isAds = true
-                        stationsWithAds.add(stationItem)
-                        adsPos = 0
+                if (binding.adapter is StationsListAdapter){
+                    var adsPos = 0
+                    val stationsWithAds = ArrayList<Station>()
+                    it.forEach { station ->
+                        if (adsPos == 19 || adsPos == 0) {
+                            val stationItem = Station()
+                            stationItem.isAds = true
+                            stationsWithAds.add(stationItem)
+                            adsPos = 0
+                        }
+                        station.isAds = false
+                        stationsWithAds.add(station)
+                        adsPos++
                     }
-                    station.isAds = false
-                    stationsWithAds.add(station)
-                    adsPos++
-                }
+                    binding.adapter!!.submitList(stationsWithAds)
+                } else binding.adapter!!.submitList(it)
+
                 if ((activity as MainActivity).scrollToFirst) {
                     binding.adapter!!.submitList(ArrayList<Station>())
                     (activity as MainActivity).scrollToFirst = false
                 }
-                binding.adapter!!.submitList(stationsWithAds)
+
             }
         })
 
