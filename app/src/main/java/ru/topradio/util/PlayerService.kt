@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.media.AudioManager.*
+import android.media.session.PlaybackState
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
@@ -37,6 +38,7 @@ import java.io.IOException
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class PlayerService: Service() {
@@ -52,6 +54,7 @@ class PlayerService: Service() {
     private val audioManager by lazy {getSystemService(Context.AUDIO_SERVICE) as AudioManager}
     private var defaultVolume = -1
     private var wakeLock: PowerManager.WakeLock? = null
+    private var fromAlarm = false
 
     override fun onBind(intent: Intent?): IBinder {
         return PlayerServiceBinder()
@@ -73,7 +76,7 @@ class PlayerService: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getBundleExtra("bundle")?.let{
             station = it.getSerializable("station") as Station
-            val fromAlarm = it.getBoolean("fromAlarm")
+            fromAlarm = it.getBoolean("fromAlarm")
             if (fromAlarm) {
                 wakeLock =
                     (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
@@ -84,144 +87,174 @@ class PlayerService: Service() {
                 alarm = it.getSerializable("alarm") as Alarm
                 checkAlarm()
             }
-            bitrateIndex = 0
-            station.bitrates.forEach { br ->
-                if (br.isSelected) {
-                    bitrateIndex = station.bitrates.indexOf(br)
-                    return@forEach
-                }
-            }
-            player.addMetadataOutput { metadata ->
-                for (n in 0 until metadata.length()) {
-                    when (val md = metadata[n]) {
-                        is com.google.android.exoplayer2.metadata.icy.IcyInfo -> {
-                            station.track = md.title?:""
-                            LocalBroadcastManager.getInstance(this@PlayerService)
-                                .sendBroadcast(Intent("player_track_name").apply {
-                                    putExtra("track_name", station.track)
-                                })
-                        }
-                        else -> {
-                            station.track = ""
-                        }
-                    }
-                }
-            }
-            player.addListener(object: Player.Listener{
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    station.isPlaying = isPlaying
-                    if (!isPlaying) {
-                        stopped = true
-                        stopForeground(false)
-                        if (station.isRecording) {
-                            station.isRecording = false
-                            LocalBroadcastManager.getInstance(this@PlayerService)
-                                .sendBroadcast(Intent("player_stop_record"))
-                        }
-                    } else {
-                        station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
-                        station.bitrates[bitrateIndex].isSelected = true
-                        stopped = false
-                        player.setHandleAudioBecomingNoisy(
-                            AppData
-                                .getSettingBoolean(this@PlayerService, "headphone")
-                        )
-                    }
-                    LocalBroadcastManager.getInstance(this@PlayerService)
-                        .sendBroadcast(Intent("player_state_changed").apply {
-                            putExtra("isPlaying", isPlaying)
-                        })
-                }
-
-                override fun onPlayerError(error: PlaybackException) {
-                    handlePlayerError()
-                }
-            })
-            playerNotificationManager = PlayerNotificationManager.Builder(this,
-                1212, getString(R.string.app_name))
-                .setMediaDescriptionAdapter(object:
-                    PlayerNotificationManager.MediaDescriptionAdapter {
-                    override fun getCurrentContentTitle(player: Player): CharSequence {
-                        return station.name
-                    }
-
-                    override fun createCurrentContentIntent(player: Player): PendingIntent? {
-                        val intent1 = Intent(this@PlayerService, MainActivity::class.java)
-                        val serviceBundle = Bundle()
-                        serviceBundle.putSerializable("station", station)
-                        intent1.putExtra("bundle", serviceBundle)
-                        return PendingIntent.getActivity(
-                            applicationContext, 0,
-                            intent1, 0
-                        )
-                    }
-
-                    override fun getCurrentContentText(player: Player): CharSequence {
-                        return station.track
-                    }
-
-                    override fun getCurrentLargeIcon(
-                        player: Player,
-                        callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
-                        loadBitmap(station.icon, callback)
-                        return null
-                    }
-
-                })
-                .setNotificationListener(object:PlayerNotificationManager.NotificationListener{
-                    override fun onNotificationCancelled(
-                        notificationId: Int,
-                        dismissedByUser: Boolean) {
-                        station = Station()
-                        LocalBroadcastManager.getInstance(this@PlayerService)
-                            .sendBroadcast(Intent("player_close"))
-                        LocalBroadcastManager.getInstance(this@PlayerService)
-                            .sendBroadcast(Intent("player_stop_record"))
-                        stopSelf()
-                    }
-
-                    override fun onNotificationPosted(
-                        notificationId: Int,
-                        notification: Notification,
-                        ongoing: Boolean) {
-                        if (!stopped) startForeground(notificationId, notification)
-                    }
-                })
-                .build()
-            playerNotificationManager.apply {
-                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                setSmallIcon(R.drawable.ic_radio)
-                setUseStopAction(true)
-                setPriority(NotificationCompat.PRIORITY_MAX)
-                setPlayer(player)
-                setUseNextAction(false)
-                setUsePreviousAction(false)
-            }
-
-            if (fromAlarm) {
-                setVolume()
-            }
-
-            val audioAttr = AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.CONTENT_TYPE_MUSIC)
-                .build()
-            player.setAudioAttributes(audioAttr, true)
-            player.playWhenReady = true
-            if (station.bitrates.size>0) {
-                player.setMediaItem(
-                    MediaItem.Builder()
-                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                        .build()
-                )
-                player.prepare()
-                if (AppData.getSettingInt(this, "timer") > 0) {
-                    setTimerOff()
-                }
-            } else stopSelf()
+            setStations()
         }
 
         return START_STICKY
+    }
+
+    private fun setStations(){
+//        //TODO list stations
+//        val items = ArrayList<MediaItem>()
+//        AppData.stationsPlayer.forEach {
+//            items.add(MediaItem.Builder()
+//                .setUri(Uri.parse(it.bitrates[0].url))
+//                .build())
+//        }
+//        player.clearMediaItems()
+//        player.setMediaItems(items)
+//        player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+
+        //TODO single station
+        player.setMediaItem(MediaItem.Builder()
+            .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+            .build())
+        player.prepare()
+        setPlayer()
+    }
+
+    private fun setPlayer() {
+        bitrateIndex = 0
+        station.bitrates.forEach { br ->
+            if (br.isSelected) {
+                bitrateIndex = station.bitrates.indexOf(br)
+                return@forEach
+            }
+        }
+        player.addMetadataOutput { metadata ->
+            for (n in 0 until metadata.length()) {
+                when (val md = metadata[n]) {
+                    is com.google.android.exoplayer2.metadata.icy.IcyInfo -> {
+                        station.track = md.title?:""
+                        LocalBroadcastManager.getInstance(this@PlayerService)
+                            .sendBroadcast(Intent("player_track_name").apply {
+                                putExtra("track_name", station.track)
+                            })
+                    }
+                    else -> {
+                        station.track = ""
+                    }
+                }
+            }
+        }
+        player.addListener(object: Player.Listener{
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                station.isPlaying = isPlaying
+                if (!isPlaying) {
+                    stopped = true
+                    stopForeground(false)
+                    if (station.isRecording) {
+                        station.isRecording = false
+                        LocalBroadcastManager.getInstance(this@PlayerService)
+                            .sendBroadcast(Intent("player_stop_record"))
+                    }
+                } else {
+                    station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
+                    station.bitrates[bitrateIndex].isSelected = true
+                    stopped = false
+                    player.setHandleAudioBecomingNoisy(
+                        AppData
+                            .getSettingBoolean(this@PlayerService, "headphone")
+                    )
+                }
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_state_changed").apply {
+                        putExtra("isPlaying", isPlaying)
+                    })
+            }
+
+//            //TODO list stations
+//            override fun onEvents(player: Player, events: Player.Events) {
+//                super.onEvents(player, events)
+//                station = AppData.stationsPlayer[player.currentWindowIndex]
+//            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                handlePlayerError()
+            }
+        })
+        playerNotificationManager = PlayerNotificationManager.Builder(this,
+            1212, getString(R.string.app_name))
+            .setMediaDescriptionAdapter(object:
+                PlayerNotificationManager.MediaDescriptionAdapter {
+                override fun getCurrentContentTitle(player: Player): CharSequence {
+                    return station.name
+                }
+
+                override fun createCurrentContentIntent(player: Player): PendingIntent? {
+                    val intent1 = Intent(this@PlayerService, MainActivity::class.java)
+                    val serviceBundle = Bundle()
+                    serviceBundle.putSerializable("station", station)
+                    intent1.putExtra("bundle", serviceBundle)
+                    return PendingIntent.getActivity(
+                        applicationContext, 0,
+                        intent1, 0
+                    )
+                }
+
+                override fun getCurrentContentText(player: Player): CharSequence {
+                    return station.track
+                }
+
+                override fun getCurrentLargeIcon(
+                    player: Player,
+                    callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
+                    loadBitmap(station.icon, callback)
+                    return null
+                }
+
+            })
+            .setNotificationListener(object:PlayerNotificationManager.NotificationListener{
+                override fun onNotificationCancelled(
+                    notificationId: Int,
+                    dismissedByUser: Boolean) {
+                    station = Station()
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_close"))
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_stop_record"))
+                    stopSelf()
+                }
+
+                override fun onNotificationPosted(
+                    notificationId: Int,
+                    notification: Notification,
+                    ongoing: Boolean) {
+                    if (!stopped) startForeground(notificationId, notification)
+                }
+            })
+            .build()
+        playerNotificationManager.apply {
+            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            setSmallIcon(R.drawable.ic_radio)
+            setUseStopAction(true)
+            setPriority(NotificationCompat.PRIORITY_MAX)
+            setPlayer(player)
+            setUseNextAction(true)
+            setUsePreviousAction(true)
+        }
+
+        if (fromAlarm) {
+            setVolume()
+        }
+
+        val audioAttr = AudioAttributes.Builder()
+            .setUsage(C.USAGE_MEDIA)
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .build()
+        player.setAudioAttributes(audioAttr, true)
+        player.playWhenReady = true
+        if (station.bitrates.size>0) {
+//            player.setMediaItem(
+//                MediaItem.Builder()
+//                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+//                    .build()
+//            )
+//            player.prepare()
+            if (AppData.getSettingInt(this, "timer") > 0) {
+                setTimerOff()
+            }
+        } else stopSelf()
     }
 
     private fun setVolume() {

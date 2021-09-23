@@ -18,9 +18,8 @@
             android:layout_height="match_parent">
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
-                android:paddingBottom="8dp"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="40dp"
                 android:theme="@style/ToolbarTheme"
                 android:background="@color/back_main"
                 app:titleTextColor="@color/white">
@@ -32,7 +31,7 @@
                 android:layout_height="match_parent"
                 app:defaultNavHost="true"
                 app:navGraph="@navigation/nav_graph"
-                android:layout_marginTop="60dp"/>
+                android:layout_marginTop="40dp"/>
             <View
                 android:id="@+id/shadow"
                 android:layout_width="match_parent"

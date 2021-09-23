@@ -92,13 +92,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private val playerStateChangedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "player_state_changed") {
+                viewModel.station.value = viewModel.getStationById(service.station)
                 viewModel.station.value!!.isPlaying =
                     intent.getBooleanExtra("isPlaying", false)
                 viewModel.station.value!!.bitrates = service.station.bitrates
                 service.station.bitrates.forEach {
                     if (it.isSelected) stationBitrate = service.station.bitrates.indexOf(it)
                 }
-                viewModel.station.value = viewModel.station.value
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
                         viewModel.playerWaiting.value = true
@@ -110,9 +110,19 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 } else {
                     if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id) {
                         viewModel.stationPager.value = viewModel.station.value
-                        //playerStationsAdapter
-                        //    .notifyItemChanged(viewModel.getStationPosition(viewModel.stationPager.value!!))
+                    } else {
+                        viewModel.stationPager.value!!.isPlaying = false
+                        viewModel.stationPager.value = viewModel.stationPager.value
+                        viewModel.stationPager.value = viewModel.station.value
+                        val position = viewModel.getStationPosition(
+                            viewModel.stationPager.value!!)
+                        binding.playerView.playerPager.postDelayed({
+                            binding.playerView.playerPager
+                                .setCurrentItem(position, false)
+                        },100)
                     }
+                    playerStationsAdapter
+                        .notifyItemChanged(viewModel.getStationPosition(viewModel.stationPager.value!!))
                     viewModel.playerWaiting.value = false
                 }
             }
@@ -401,10 +411,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
                     binding.playerView.playerExpanded.alpha = slideOffset
                     binding.playerView.playerMini.alpha = 1 - slideOffset
-                    val currentHeight = binding.navHostFragment.height - bottomSheet.height
-                    val bottomSheetShiftDown = currentHeight - bottomSheet.top
                     binding.navHostFragment.setPadding(0, 0, 0,
-                        (bottomSheet.height + bottomSheetShiftDown))
+                        (binding.navHostFragment.bottom-bottomSheet.top))
                 }
 
             })
@@ -424,11 +432,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             binding.playerView.playerPager
                 .setCurrentItem(position, false)
             playerStationsAdapter.notifyItemChanged(position)
+            BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
         },100)
         if (AppData.getSettingBoolean(this,"autoplay")) {
             playStation(viewModel.stationPager.value!!)
         }
-        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
 
         viewModel.showAds.value = true
     }
@@ -442,6 +450,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             }
             playerStationsAdapter.notifyItemChanged(viewModel.getStationPosition(viewModel.station.value!!))
             viewModel.station.value = viewModel.stationPager.value
+            AppData.stationsPlayer.clear()
+            AppData.stationsPlayer.addAll(viewModel.stations.value!!)
             val intent = Intent(this, PlayerService::class.java)
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("station", station)

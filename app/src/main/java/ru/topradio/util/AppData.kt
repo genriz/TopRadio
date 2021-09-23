@@ -18,6 +18,7 @@ object AppData {
 
     val auth = Credentials.basic("goword", "0GdouNEOMd")
     val stations = ArrayList<Station>()
+    var stationsPlayer = ArrayList<Station>()
     val cities = ArrayList<City>()
     val genres = ArrayList<Genre>()
     var favorites = HashSet<String>()

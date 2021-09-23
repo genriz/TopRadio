@@ -1,5 +1,6 @@
 package ru.topradio.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.widget.SearchView
@@ -31,8 +32,13 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
             binding.stationsList.layoutManager = LinearLayoutManager(requireContext())
             binding.adapter = StationsListAdapter(requireContext(),this)
         } else {
-            binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
-                StaggeredGridLayoutManager.VERTICAL)
+            if (resources.configuration.orientation== Configuration.ORIENTATION_LANDSCAPE){
+                binding.stationsList.layoutManager = StaggeredGridLayoutManager(6,
+                    StaggeredGridLayoutManager.VERTICAL)
+            } else {
+                binding.stationsList.layoutManager = StaggeredGridLayoutManager(3,
+                    StaggeredGridLayoutManager.VERTICAL)
+            }
             binding.adapter = StationsListGridAdapter(this)
         }
         binding.lifecycleOwner = this

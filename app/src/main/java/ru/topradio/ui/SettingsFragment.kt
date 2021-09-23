@@ -39,9 +39,9 @@ class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange,
             .getSettingBoolean(requireContext(),"headphone")
         binding.switchHeadphone.setOnCheckedChangeListener { _, isChecked ->
             AppData.setSettingBoolean(requireContext(), "headphone", isChecked)
-            if ((activity as MainActivity).player.isPlaying){
+            //if ((activity as MainActivity).player.isPlaying){
                 (activity as MainActivity).player.setHandleAudioBecomingNoisy(isChecked)
-            }
+            //}
         }
 
         binding.switchReconnect.isChecked = AppData
