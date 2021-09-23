@@ -2,6 +2,7 @@ package ru.topradio.ui
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
@@ -128,7 +129,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
                     else
                         if (newText.isEmpty()) {
                             (activity as MainActivity).viewModel.clearSearchStations()
-                            binding.stationsList.scrollToPosition(0)
+                            (activity as MainActivity).scrollToFirst = false
+                            //binding.stationsList.scrollToPosition(0)
                         }
                     return true
                 }
@@ -136,7 +138,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
             })
             setOnCloseListener {
                 (activity as MainActivity).viewModel.clearSearchStations()
-                binding.stationsList.scrollToPosition(0)
+                (activity as MainActivity).scrollToFirst = false
+                //binding.stationsList.scrollToPosition(0)
                 onActionViewCollapsed()
                 true
             }

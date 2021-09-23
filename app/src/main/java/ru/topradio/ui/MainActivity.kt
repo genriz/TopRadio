@@ -45,6 +45,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import pub.devrel.easypermissions.EasyPermissions
+import ru.topradio.ui.dialogs.DialogStationOff
 import java.lang.Exception
 
 
@@ -101,11 +102,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 }
                 if (!viewModel.station.value!!.isPlaying){
                     if (player.playbackState==ExoPlayer.STATE_BUFFERING){
-                        viewModel.playerWaiting.value = true
+                        viewModel.playerWaiting.value =
+                            viewModel.station.value!!.id==viewModel.stationPager.value!!.id
                     } else {
                         if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
                             viewModel.stationPager.value = viewModel.station.value
                         viewModel.playerWaiting.value = false
+                    }
+                    if (intent.getBooleanExtra("isError", false)){
+                        Log.v("DASD", "show")
+                        showStationOffDialog()
+                        viewModel.playerWaiting.value = false
+                        service.station = Station()
                     }
                 } else {
                     if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id) {
@@ -113,13 +121,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     } else {
                         viewModel.stationPager.value!!.isPlaying = false
                         viewModel.stationPager.value = viewModel.stationPager.value
-                        viewModel.stationPager.value = viewModel.station.value
-                        val position = viewModel.getStationPosition(
-                            viewModel.stationPager.value!!)
-                        binding.playerView.playerPager.postDelayed({
-                            binding.playerView.playerPager
-                                .setCurrentItem(position, false)
-                        },100)
+//                        viewModel.stationPager.value = viewModel.station.value
+//                        val position = viewModel.getStationPosition(
+//                            viewModel.stationPager.value!!)
+//                        binding.playerView.playerPager.postDelayed({
+//                            binding.playerView.playerPager
+//                                .setCurrentItem(position, false)
+//                        },100)
                     }
                     playerStationsAdapter
                         .notifyItemChanged(viewModel.getStationPosition(viewModel.stationPager.value!!))
@@ -298,6 +306,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 viewModel.stationPager.value = playerStationsAdapter.currentList[position]
+                if (viewModel.stationPager.value!!.id!=service.station.id){
+                    viewModel.playerWaiting.value = false
+                }
                 viewModel.setViewedStation(this@MainActivity,
                     playerStationsAdapter.currentList[position])
             }
@@ -307,7 +318,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
                 else {
-                    viewModel.playerWaiting.value = true
+                    //viewModel.playerWaiting.value = true
                     player.prepare()
                     player.play()
                 }
@@ -321,7 +332,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
                 else {
-                    viewModel.playerWaiting.value = true
+                    //viewModel.playerWaiting.value = true
                     player.prepare()
                     player.play()
                 }
@@ -618,6 +629,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
 
     private fun showInternetDialog(){
         DialogInternet(this).show()
+    }
+
+    private fun showStationOffDialog(){
+        DialogStationOff(this).show()
     }
 
     override fun onMenuPositionClick(position: Int) {

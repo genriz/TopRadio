@@ -58,7 +58,7 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         holder.binding.adsView.adListener = object: AdListener() {
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
-                holder.binding.adsView.loadAd(AdRequest.Builder().build())
+//                holder.binding.adsView.loadAd(AdRequest.Builder().build())
             }
             override fun onAdLoaded() {
                 super.onAdLoaded()

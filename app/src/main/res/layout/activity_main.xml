@@ -32,9 +32,7 @@
                 android:layout_height="match_parent"
                 app:defaultNavHost="true"
                 app:navGraph="@navigation/nav_graph"
-                android:layout_marginTop="60dp"
-                app:layout_anchor="@id/playerView"
-                app:layout_anchorGravity="bottom|end"/>
+                android:layout_marginTop="60dp"/>
             <View
                 android:id="@+id/shadow"
                 android:layout_width="match_parent"

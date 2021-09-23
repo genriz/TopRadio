@@ -46,4 +46,6 @@
     <string name="alarm_wrong_time">Время будильника установлено неверно!</string>
     <string name="no_internet">Нет подключения к интернету</string>
     <string name="internet_info">Подключите Wi-Fi соединение или мобильный интернет для прослушивания радиостанций</string>
+    <string name="station_off">Эта станция сейчас недоступна</string>
+
 </resources>

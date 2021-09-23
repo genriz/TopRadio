@@ -10,6 +10,7 @@ import ru.topradio.api.ApiRadio
 import ru.topradio.ui.dialogs.DialogInternet
 import ru.topradio.util.AppData
 import kotlinx.coroutines.*
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 class SplashActivity : AppCompatActivity() {
@@ -57,15 +58,17 @@ class SplashActivity : AppCompatActivity() {
                         }
                     }
                 }
-            } catch (e: UnknownHostException){
+            } catch (e: Exception){
                 Log.v("DASD", e.toString())
-                job?.cancel()
-                CoroutineScope(Dispatchers.Main).launch {
-                    DialogInternet(this@SplashActivity).apply {
-                        setOnDismissListener {
-                            finish()
-                        }
-                    }.show()
+                if (e is UnknownHostException || e is SocketTimeoutException) {
+                    job?.cancel()
+                    CoroutineScope(Dispatchers.Main).launch {
+                        DialogInternet(this@SplashActivity).apply {
+                            setOnDismissListener {
+                                finish()
+                            }
+                        }.show()
+                    }
                 }
             }
         }

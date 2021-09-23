@@ -110,7 +110,25 @@ class PlayerService: Service() {
             .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
             .build())
         player.prepare()
+        handler.postDelayed({
+            if (player.playbackState!=ExoPlayer.STATE_READY){
+                player.stop()
+                LocalBroadcastManager.getInstance(this@PlayerService)
+                    .sendBroadcast(Intent("player_state_changed").apply {
+                        putExtra("isPlaying", false)
+                        putExtra("isError", true)
+                    })
+                handler.removeCallbacksAndMessages(null)
+            }
+        }, 20000)
         setPlayer()
+    }
+
+    fun setSingleStation(){
+        player.clearMediaItems()
+        player.setMediaItem(MediaItem.Builder()
+            .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+            .build())
     }
 
     private fun setPlayer() {
@@ -149,6 +167,7 @@ class PlayerService: Service() {
                             .sendBroadcast(Intent("player_stop_record"))
                     }
                 } else {
+                    handler.removeCallbacksAndMessages(null)
                     station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
                     station.bitrates[bitrateIndex].isSelected = true
                     stopped = false
@@ -324,7 +343,6 @@ class PlayerService: Service() {
 
 
     private fun handlePlayerError() {
-        Log.v("DASD", "${isInternetAvailable()}")
         if (isInternetAvailable()) {
             bitrateIndex++
             if (bitrateIndex < station.bitrates.size) {
@@ -336,10 +354,18 @@ class PlayerService: Service() {
                 player.prepare()
             } else {
                 bitrateIndex = 0
-                LocalBroadcastManager.getInstance(this@PlayerService)
-                    .sendBroadcast(Intent("player_state_changed").apply {
-                        putExtra("isPlaying", false)
-                    })
+                player.setMediaItem(
+                    MediaItem.Builder()
+                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                        .build()
+                )
+                player.prepare()
+//                LocalBroadcastManager.getInstance(this@PlayerService)
+//                    .sendBroadcast(Intent("player_state_changed").apply {
+//                        putExtra("isPlaying", false)
+//                        putExtra("isError", true)
+//                    })
+//                handler.removeCallbacksAndMessages(null)
             }
         } else {
             if (AppData.getSettingBoolean(this@PlayerService,"reconnect")) {
@@ -401,7 +427,7 @@ class PlayerService: Service() {
         }
     }
 
-    fun startTimerRecord(){
+    private fun startTimerRecord(){
         val startTime = System.currentTimeMillis()
         val r: Runnable = object : Runnable {
             override fun run() {

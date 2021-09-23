@@ -12,6 +12,9 @@ import ru.topradio.databinding.StationItemListBinding
 import ru.topradio.model.Station
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.nativead.NativeAd
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class StationsListAdapter(private val context: Context,
                           private val listener: OnClickListener):
@@ -47,8 +50,10 @@ class StationsListAdapter(private val context: Context,
             adLoader = AdLoader.Builder(context,
                 "ca-app-pub-8287740228306736/3700859131")
                 .forNativeAd { ad : NativeAd ->
-                    holder.binding.adView.setNativeAd(ad)
-                    holder.binding.adView.visibility = View.VISIBLE
+                    CoroutineScope(Dispatchers.Main).launch {
+                        holder.binding.adView.setNativeAd(ad)
+                        holder.binding.adView.visibility = View.VISIBLE
+                    }
                 }
                 .build()
             holder
@@ -59,7 +64,9 @@ class StationsListAdapter(private val context: Context,
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is AdsViewHolder){
             holder.binding.adView.visibility = View.INVISIBLE
-            adLoader.loadAd(AdRequest.Builder().build())
+            CoroutineScope(Dispatchers.IO).launch {
+                adLoader.loadAd(AdRequest.Builder().build())
+            }
         }
         if (holder is StationViewHolder){
             val station = getItem(position)
