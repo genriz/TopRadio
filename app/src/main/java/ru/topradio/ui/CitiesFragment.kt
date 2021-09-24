@@ -22,7 +22,6 @@ class CitiesFragment: Fragment(), CitiesListAdapter.OnClickListener {
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_cities,
             container, false)
-        binding.citiesList.layoutManager = LinearLayoutManager(requireContext())
         binding.adapter = CitiesListAdapter(this)
         binding.lifecycleOwner = this
         return binding.root

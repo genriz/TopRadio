@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
@@ -60,6 +61,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
                 { _, year, month, dayOfMonth ->
                     cal.set(year,month,dayOfMonth)
                     viewModel.setDate(requireContext(), cal.timeInMillis)
+                    if (binding.switchAlarm.isChecked) setAlarm()
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -76,6 +78,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
             cal.set(Calendar.HOUR_OF_DAY, hourOfDay)
             cal.set(Calendar.MINUTE, minute)
             viewModel.saveTimeSetting(requireContext(), hourOfDay, minute)
+            if (binding.switchAlarm.isChecked) setAlarm()
         }
 
         repeatDays = AppData.getRepeatDays(requireContext())
@@ -102,6 +105,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
         binding.switchVolume.isChecked = viewModel.getVolumeSetting(requireContext())
         binding.switchVolume.setOnCheckedChangeListener { _, isChecked ->
             viewModel.saveVolumeSetting(requireContext(), isChecked)
+            if (binding.switchAlarm.isChecked) setAlarm()
         }
     }
 
@@ -132,6 +136,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
         stationSelected = station
         AppData.setSettingInt(requireContext(),"stationId",station.id)
         binding.stationValue.text = station.name
+        if (binding.switchAlarm.isChecked) setAlarm()
     }
 
     override fun onSearch(query: String) {
@@ -147,5 +152,6 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
             repeatDays.remove("${AppData.calDays[position]}")
         }
         AppData.setRepeatDays(requireContext(), repeatDays)
+        if (binding.switchAlarm.isChecked) setAlarm()
     }
 }

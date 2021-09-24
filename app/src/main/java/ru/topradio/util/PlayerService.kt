@@ -11,12 +11,10 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.media.AudioManager.*
-import android.media.session.PlaybackState
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -38,7 +36,6 @@ import java.io.IOException
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 class PlayerService: Service() {
@@ -62,14 +59,7 @@ class PlayerService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-//        val loadControl = DefaultLoadControl.Builder().setBufferDurationsMs(
-//            15000,
-//            50000,
-//            15000,
-//            1000)
-//            .build()
         player = SimpleExoPlayer.Builder(this)
-//            .setLoadControl(loadControl)
             .build()
     }
 
@@ -168,6 +158,7 @@ class PlayerService: Service() {
                     }
                 } else {
                     handler.removeCallbacksAndMessages(null)
+                    fromAlarm = false
                     station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
                     station.bitrates[bitrateIndex].isSelected = true
                     stopped = false
@@ -368,7 +359,8 @@ class PlayerService: Service() {
 //                handler.removeCallbacksAndMessages(null)
             }
         } else {
-            if (AppData.getSettingBoolean(this@PlayerService,"reconnect")) {
+            if (AppData.getSettingBoolean(this@PlayerService,"reconnect")
+                ||fromAlarm) {
                 applicationContext.registerReceiver(mConnReceiver,
                     IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
             } else {
@@ -449,7 +441,6 @@ class PlayerService: Service() {
         try {
             fileOutputStream.close()
         } catch (e:java.lang.Exception){e.printStackTrace()}
-        //Toast.makeText(this@PlayerService, R.string.stop_record, Toast.LENGTH_SHORT).show()
     }
 
     fun setBitrate(index: Int){

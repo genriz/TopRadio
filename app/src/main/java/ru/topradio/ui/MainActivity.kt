@@ -390,7 +390,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                             } else {
                                 updatePlayerPager()
                             }
-
                         }
                         if (service.station.name==""){
                             BottomSheetBehavior.from(binding.playerView.root).isHideable = true
@@ -436,15 +435,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         else viewModel.getStationFavoritesPosition(viewModel.stationPager.value!!)
         binding.playerView.playerExpanded.visibility = View.VISIBLE
         if (!mainStations)
-            playerStationsAdapter.submitList(viewModel.stationsFavorites.value!!)
+            playerStationsAdapter.submitList(viewModel.stationsFavorites.value!!){
+                binding.playerView.playerPager
+                    .setCurrentItem(position, false)
+                playerStationsAdapter.notifyItemChanged(position)
+            }
         else
-            playerStationsAdapter.submitList(viewModel.stations.value!!)
-        binding.playerView.playerPager.postDelayed({
-            binding.playerView.playerPager
-                .setCurrentItem(position, false)
-            playerStationsAdapter.notifyItemChanged(position)
-            BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
-        },100)
+            playerStationsAdapter.submitList(viewModel.stations.value!!){
+                binding.playerView.playerPager
+                    .setCurrentItem(position, false)
+                playerStationsAdapter.notifyItemChanged(position)
+            }
+        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
         if (AppData.getSettingBoolean(this,"autoplay")) {
             playStation(viewModel.stationPager.value!!)
         }

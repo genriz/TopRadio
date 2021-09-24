@@ -38,7 +38,7 @@ class AlarmService: Service() {
     }
 
     private fun setAlarm(alarm: Alarm){
-        if (isServiceStarted) return
+//        if (isServiceStarted) return
         isServiceStarted = true
 
         GlobalScope.launch(Dispatchers.IO) {

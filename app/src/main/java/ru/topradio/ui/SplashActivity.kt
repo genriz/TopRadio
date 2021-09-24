@@ -26,6 +26,11 @@ class SplashActivity : AppCompatActivity() {
         else
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
+        getApiData()
+
+    }
+
+    private fun getApiData(){
         job = CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = ApiRadio().getApi().getRadios(AppData.auth)
@@ -65,7 +70,7 @@ class SplashActivity : AppCompatActivity() {
                     CoroutineScope(Dispatchers.Main).launch {
                         DialogInternet(this@SplashActivity).apply {
                             setOnDismissListener {
-                                finish()
+                                getApiData()
                             }
                         }.show()
                     }
