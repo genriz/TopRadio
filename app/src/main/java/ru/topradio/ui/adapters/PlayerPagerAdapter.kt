@@ -38,7 +38,8 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         val station = getItem(position)
         holder.binding.station = station
         holder.binding.trackNameExpanded.setOnClickListener {
-            listener.onCopyClick(station.track)
+            if (holder.binding.trackNameExpanded.text.isNotEmpty())
+                listener.onCopyClick(station.track)
         }
         holder.binding.trackNameExpanded.isSelected = true
         Glide.with(holder.binding.imageView3).load(R.raw.player_bars_up)

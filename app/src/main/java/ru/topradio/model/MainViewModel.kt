@@ -91,24 +91,24 @@ class MainViewModel: ViewModel() {
         stationsApi.postValue(cityStations)
     }
 
-    fun getStationById(station: Station): Station?{
-        return if (stations.value!=null) {
+    fun getStationById(station: Station, array: ArrayList<Station>): Station{
+        return if (array.size>0) {
             var stationById = Station()
-            stations.value?.forEach { station_ ->
+            array.forEach { station_ ->
                 if (station_.id == station.id) {
                     stationById = station_
                 }
             }
             stationById
-        } else null
+        } else Station()
     }
 
-    fun getStationPosition(station: Station): Int{
-        return if (stations.value!=null){
+    fun getStationPosition(station: Station, array: ArrayList<Station>): Int{
+        return if (array.size>0){
             var position = 0
-            stations.value?.forEach {station_ ->
+            array.forEach {station_ ->
                 if (station_.id == station.id) {
-                    position = stations.value!!.indexOf(station_)
+                    position = array.indexOf(station_)
                 }
             }
             position

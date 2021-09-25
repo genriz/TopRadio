@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "325570574643",
+    "project_id": "radio-stations-a809f",
+    "storage_bucket": "radio-stations-a809f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325570574643:android:252482603eb4d781472646",
+        "android_client_info": {
+          "package_name": "ru.topradio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "325570574643-p9g95cqtaafpnnltekguc2dcscnehfi1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHC06IDVCGSffGFhKIfU20J6uw50C_2gU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "325570574643-p9g95cqtaafpnnltekguc2dcscnehfi1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

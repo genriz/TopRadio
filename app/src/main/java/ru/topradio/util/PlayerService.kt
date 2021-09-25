@@ -15,6 +15,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -41,7 +42,7 @@ import java.util.*
 class PlayerService: Service() {
 
     private lateinit var player: SimpleExoPlayer
-    private lateinit var playerNotificationManager: PlayerNotificationManager
+    private var playerNotificationManager: PlayerNotificationManager? = null
     var station = Station()
     var alarm = Alarm()
     var stopped = false
@@ -85,20 +86,15 @@ class PlayerService: Service() {
 
     private fun setStations(){
 //        //TODO list stations
-//        val items = ArrayList<MediaItem>()
-//        AppData.stationsPlayer.forEach {
-//            items.add(MediaItem.Builder()
-//                .setUri(Uri.parse(it.bitrates[0].url))
-//                .build())
-//        }
-//        player.clearMediaItems()
-//        player.setMediaItems(items)
-//        player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
-
-        //TODO single station
-        player.setMediaItem(MediaItem.Builder()
-            .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-            .build())
+        val items = ArrayList<MediaItem>()
+        AppData.stationsPlayer.forEach {
+            items.add(MediaItem.Builder()
+                .setUri(Uri.parse(it.bitrates[0].url))
+                .build())
+        }
+        player.clearMediaItems()
+        player.setMediaItems(items)
+        player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
         player.prepare()
         handler.postDelayed({
             if (player.playbackState!=ExoPlayer.STATE_READY){
@@ -111,6 +107,24 @@ class PlayerService: Service() {
                 handler.removeCallbacksAndMessages(null)
             }
         }, 20000)
+
+        //TODO single station
+//        player.setMediaItem(MediaItem.Builder()
+//            .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+//            .build())
+//        player.prepare()
+//        handler.postDelayed({
+//            if (player.playbackState!=ExoPlayer.STATE_READY){
+//                player.stop()
+//                LocalBroadcastManager.getInstance(this@PlayerService)
+//                    .sendBroadcast(Intent("player_state_changed").apply {
+//                        putExtra("isPlaying", false)
+//                        putExtra("isError", true)
+//                    })
+//                handler.removeCallbacksAndMessages(null)
+//            }
+//        }, 20000)
+
         setPlayer()
     }
 
@@ -160,6 +174,7 @@ class PlayerService: Service() {
                     handler.removeCallbacksAndMessages(null)
                     fromAlarm = false
                     station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
+                    if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
                     station.bitrates[bitrateIndex].isSelected = true
                     stopped = false
                     player.setHandleAudioBecomingNoisy(
@@ -173,11 +188,12 @@ class PlayerService: Service() {
                     })
             }
 
-//            //TODO list stations
-//            override fun onEvents(player: Player, events: Player.Events) {
-//                super.onEvents(player, events)
-//                station = AppData.stationsPlayer[player.currentWindowIndex]
-//            }
+            //TODO list stations
+            override fun onEvents(player: Player, events: Player.Events) {
+                super.onEvents(player, events)
+                station = if (events[events.size()-1]==4) Station()
+                else AppData.stationsPlayer[player.currentWindowIndex]
+            }
 
             override fun onPlayerError(error: PlaybackException) {
                 handlePlayerError()
@@ -234,7 +250,7 @@ class PlayerService: Service() {
                 }
             })
             .build()
-        playerNotificationManager.apply {
+        playerNotificationManager?.apply {
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             setSmallIcon(R.drawable.ic_radio)
             setUseStopAction(true)
@@ -319,7 +335,7 @@ class PlayerService: Service() {
                     player.stop()
                     stopped = true
                     station = Station()
-                    playerNotificationManager.setPlayer(null)
+                    playerNotificationManager?.setPlayer(null)
                     stopForeground(true)
                     stopSelf()
                     LocalBroadcastManager.getInstance(this@PlayerService)
@@ -373,7 +389,7 @@ class PlayerService: Service() {
                 player.stop()
                 stopped = true
                 station = Station()
-                playerNotificationManager.setPlayer(null)
+                playerNotificationManager?.setPlayer(null)
                 stopForeground(true)
                 stopSelf()
             }
@@ -445,11 +461,13 @@ class PlayerService: Service() {
 
     fun setBitrate(index: Int){
         bitrateIndex = index
-        if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
-        player.setMediaItem(
+        val position = AppData.stationsPlayer.indexOf(station)
+        player.removeMediaItem(position)
+        player.addMediaItem(position,
             MediaItem.Builder()
                 .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
                 .build())
+        player.seekTo(position,0)
         player.prepare()
     }
 
@@ -484,7 +502,7 @@ class PlayerService: Service() {
         player.stop()
         stopped = true
         station = Station()
-        playerNotificationManager.setPlayer(null)
+        playerNotificationManager?.setPlayer(null)
         stopForeground(true)
         stopSelf()
     }
@@ -494,6 +512,7 @@ class PlayerService: Service() {
             audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume,
                 FLAG_PLAY_SOUND)
         handler.removeCallbacksAndMessages(null)
+        AppData.stationsPlayer.clear()
         super.onDestroy()
     }
 }
