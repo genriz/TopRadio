@@ -52,10 +52,10 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stationsFavorites.observe(viewLifecycleOwner,{
             if (it!=null){
-                if ((activity as MainActivity).scrollToFirst) {
-                    binding.adapter!!.submitList(ArrayList<Station>())
-                    (activity as MainActivity).scrollToFirst = false
-                }
+                binding.adapter!!.submitList(ArrayList<Station>())
+//                if ((activity as MainActivity).scrollToFirst) {
+//                    (activity as MainActivity).scrollToFirst = false
+//                }
                 binding.adapter!!.submitList(it)
             }
         })

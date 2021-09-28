@@ -59,6 +59,7 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
+                binding.adapter!!.submitList(ArrayList<Station>())
                 if (binding.adapter is StationsListAdapter){
                     var adsPos = 0
                     val stationsWithAds = ArrayList<Station>()
@@ -76,10 +77,10 @@ class CityStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
                     binding.adapter!!.submitList(stationsWithAds)
                 } else binding.adapter!!.submitList(it)
 
-                if ((activity as MainActivity).scrollToFirst) {
-                    binding.adapter!!.submitList(ArrayList<Station>())
-                    (activity as MainActivity).scrollToFirst = false
-                }
+//                if ((activity as MainActivity).scrollToFirst) {
+//                    binding.adapter!!.submitList(ArrayList<Station>())
+//                    (activity as MainActivity).scrollToFirst = false
+//                }
             }
         })
 

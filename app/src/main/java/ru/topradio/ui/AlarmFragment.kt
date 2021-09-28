@@ -61,7 +61,8 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
                 { _, year, month, dayOfMonth ->
                     cal.set(year,month,dayOfMonth)
                     viewModel.setDate(requireContext(), cal.timeInMillis)
-                    if (binding.switchAlarm.isChecked) setAlarm()
+                    if (binding.switchAlarm.isChecked)
+                        binding.switchAlarm.isChecked = false
                 },
                 cal.get(Calendar.YEAR),
                 cal.get(Calendar.MONTH),
@@ -78,7 +79,8 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
             cal.set(Calendar.HOUR_OF_DAY, hourOfDay)
             cal.set(Calendar.MINUTE, minute)
             viewModel.saveTimeSetting(requireContext(), hourOfDay, minute)
-            if (binding.switchAlarm.isChecked) setAlarm()
+            if (binding.switchAlarm.isChecked)
+                binding.switchAlarm.isChecked = false
         }
 
         repeatDays = AppData.getRepeatDays(requireContext())
@@ -110,6 +112,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
     }
 
     private fun setAlarm() {
+        requireContext().stopService(Intent(requireContext(), AlarmService::class.java))
         cal.set(Calendar.SECOND,0)
         if (cal.timeInMillis>Calendar.getInstance().timeInMillis||repeatDays.size>0) {
             val alarm = Alarm().apply {

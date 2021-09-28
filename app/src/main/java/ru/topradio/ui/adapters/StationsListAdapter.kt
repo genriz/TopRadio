@@ -33,7 +33,7 @@ class StationsListAdapter(private val context: Context,
 
     companion object: DiffUtil.ItemCallback<Station>() {
         override fun areItemsTheSame(oldItem: Station, newItem: Station):
-                Boolean = oldItem === newItem
+                Boolean = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: Station, newItem: Station):
                 Boolean = oldItem.id == newItem.id
     }

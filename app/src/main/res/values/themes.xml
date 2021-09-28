@@ -36,4 +36,7 @@
         <item name="android:windowMinWidthMajor">70%</item>
         <item name="android:windowMinWidthMinor">70%</item>
     </style>
+    <style name="circleCardView">
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

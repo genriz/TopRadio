@@ -15,14 +15,9 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import ru.topradio.R
-import ru.topradio.model.Alarm
-import ru.topradio.model.Station
-import ru.topradio.ui.MainActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -31,6 +26,10 @@ import com.google.android.exoplayer2.DefaultLoadControl.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
+import ru.topradio.R
+import ru.topradio.model.Alarm
+import ru.topradio.model.Station
+import ru.topradio.ui.MainActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -86,27 +85,51 @@ class PlayerService: Service() {
 
     private fun setStations(){
 //        //TODO list stations
-        val items = ArrayList<MediaItem>()
-        AppData.stationsPlayer.forEach {
-            items.add(MediaItem.Builder()
-                .setUri(Uri.parse(it.bitrates[0].url))
+        if (fromAlarm){
+            AppData.stationsPlayer.clear()
+            AppData.stationsPlayer.add(station)
+            player.clearMediaItems()
+            player.setMediaItem(MediaItem.Builder()
+                .setUri(Uri.parse(station.bitrates[0].url))
                 .build())
-        }
-        player.clearMediaItems()
-        player.setMediaItems(items)
-        player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
-        player.prepare()
-        handler.postDelayed({
-            if (player.playbackState!=ExoPlayer.STATE_READY){
-                player.stop()
-                LocalBroadcastManager.getInstance(this@PlayerService)
-                    .sendBroadcast(Intent("player_state_changed").apply {
-                        putExtra("isPlaying", false)
-                        putExtra("isError", true)
-                    })
-                handler.removeCallbacksAndMessages(null)
+            player.prepare()
+            handler.postDelayed({
+                if (player.playbackState!=ExoPlayer.STATE_READY){
+                    player.stop()
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_state_changed").apply {
+                            putExtra("isPlaying", false)
+                            putExtra("isError", true)
+                        })
+                    handler.removeCallbacksAndMessages(null)
+                }
+            }, 20000)
+
+        } else {
+            val items = ArrayList<MediaItem>()
+            AppData.stationsPlayer.forEach {
+                items.add(
+                    MediaItem.Builder()
+                        .setUri(Uri.parse(it.bitrates[0].url))
+                        .build()
+                )
             }
-        }, 20000)
+            player.clearMediaItems()
+            player.setMediaItems(items)
+            player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+            player.prepare()
+            handler.postDelayed({
+                if (player.playbackState != ExoPlayer.STATE_READY) {
+                    player.stop()
+                    LocalBroadcastManager.getInstance(this@PlayerService)
+                        .sendBroadcast(Intent("player_state_changed").apply {
+                            putExtra("isPlaying", false)
+                            putExtra("isError", true)
+                        })
+                    handler.removeCallbacksAndMessages(null)
+                }
+            }, 20000)
+        }
 
         //TODO single station
 //        player.setMediaItem(MediaItem.Builder()
@@ -191,8 +214,10 @@ class PlayerService: Service() {
             //TODO list stations
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
+                if (!fromAlarm)
                 station = if (events[events.size()-1]==4) Station()
                 else AppData.stationsPlayer[player.currentWindowIndex]
+
             }
 
             override fun onPlayerError(error: PlaybackException) {
@@ -234,7 +259,6 @@ class PlayerService: Service() {
                 override fun onNotificationCancelled(
                     notificationId: Int,
                     dismissedByUser: Boolean) {
-                    station = Station()
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_close"))
                     LocalBroadcastManager.getInstance(this@PlayerService)
@@ -284,27 +308,19 @@ class PlayerService: Service() {
     }
 
     private fun setVolume() {
+        defaultVolume = audioManager.getStreamVolume(STREAM_MUSIC)
+        audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_ALARM),
+            FLAG_PLAY_SOUND)
         if (AppData.getSettingBoolean(this,"volume")){
-            defaultVolume = audioManager.getStreamVolume(STREAM_MUSIC)
-            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_ALARM),
-                FLAG_PLAY_SOUND)
             player.volume = 0f
-            val r: Runnable = object : Runnable {
-                override fun run() {
-                    handler.postDelayed(this, 2000)
-                    if (player.volume<1f) {
-                        player.volume += 0.01f
-                    } else {
-                        audioManager.setStreamVolume(STREAM_MUSIC, defaultVolume,
-                            FLAG_PLAY_SOUND)
-                        handler.removeCallbacksAndMessages(null)
-                    }
+            val countDownTimer = object: CountDownTimer(60000,2000){
+                override fun onTick(millisUntilFinished: Long) {
+                    player.volume += 0.02f
+                }
+                override fun onFinish() {
                 }
             }
-            r.run()
-        } else {
-            audioManager.setStreamVolume(STREAM_MUSIC, audioManager.getStreamVolume(STREAM_ALARM),
-                FLAG_PLAY_SOUND)
+            countDownTimer.start()
         }
     }
 
@@ -322,7 +338,11 @@ class PlayerService: Service() {
             val serviceBundle = Bundle()
             serviceBundle.putSerializable("alarm", alarm)
             intent.putExtra("setAlarm", serviceBundle)
-            startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
         }
     }
 
@@ -334,7 +354,6 @@ class PlayerService: Service() {
                     AppData.setSettingInt(this@PlayerService, "timer",0)
                     player.stop()
                     stopped = true
-                    station = Station()
                     playerNotificationManager?.setPlayer(null)
                     stopForeground(true)
                     stopSelf()
@@ -353,20 +372,20 @@ class PlayerService: Service() {
         if (isInternetAvailable()) {
             bitrateIndex++
             if (bitrateIndex < station.bitrates.size) {
-                player.setMediaItem(
-                    MediaItem.Builder()
-                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                        .build()
-                )
-                player.prepare()
+                setBitrate(bitrateIndex)
             } else {
-                bitrateIndex = 0
-                player.setMediaItem(
-                    MediaItem.Builder()
-                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                        .build()
-                )
-                player.prepare()
+                player.stop()
+                stopped = true
+                playerNotificationManager?.setPlayer(null)
+                stopForeground(true)
+                stopSelf()
+//                bitrateIndex = 0
+//                player.setMediaItem(
+//                    MediaItem.Builder()
+//                        .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+//                        .build()
+//                )
+//                player.prepare()
 //                LocalBroadcastManager.getInstance(this@PlayerService)
 //                    .sendBroadcast(Intent("player_state_changed").apply {
 //                        putExtra("isPlaying", false)
@@ -388,7 +407,6 @@ class PlayerService: Service() {
                     .sendBroadcast(Intent("player_stop_record"))
                 player.stop()
                 stopped = true
-                station = Station()
                 playerNotificationManager?.setPlayer(null)
                 stopForeground(true)
                 stopSelf()
@@ -513,6 +531,9 @@ class PlayerService: Service() {
                 FLAG_PLAY_SOUND)
         handler.removeCallbacksAndMessages(null)
         AppData.stationsPlayer.clear()
+        station = Station()
+        alarm = Alarm()
+        fromAlarm = false
         super.onDestroy()
     }
 }

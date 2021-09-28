@@ -21,9 +21,9 @@ import java.util.*
 
 class AlarmService: Service() {
 
-    var station = Station()
     private var wakeLock: PowerManager.WakeLock? = null
     private var isServiceStarted = false
+    private var alarmIntent: PendingIntent? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -77,9 +77,6 @@ class AlarmService: Service() {
         }
 
         val intent1 = Intent(this@AlarmService, MainActivity::class.java)
-        val bundle = Bundle()
-        bundle.putSerializable("station", alarm.station)
-        intent1.putExtra("bundle", bundle)
 
         val pendingIntent = PendingIntent.getActivity(this@AlarmService,
             0, intent1, 0)
@@ -104,17 +101,20 @@ class AlarmService: Service() {
         serviceBundle.putBoolean("fromAlarm", true)
         intent.putExtra("bundle", serviceBundle)
 
+        alarmIntent = PendingIntent.getService(
+            applicationContext, 0,
+            intent, PendingIntent.FLAG_UPDATE_CURRENT)
         (getSystemService(ALARM_SERVICE) as AlarmManager).setExact(
             AlarmManager.RTC_WAKEUP,
             alarm.dateTime,
-            PendingIntent.getService(
-                applicationContext, 0,
-                intent, 0))
+            alarmIntent!!)
 
         startForeground(1021, notification)
     }
 
     override fun onDestroy() {
+        (getSystemService(ALARM_SERVICE) as AlarmManager).cancel(alarmIntent!!)
+        alarmIntent = null
         wakeLock?.let {
             if (it.isHeld) {
                 it.release()

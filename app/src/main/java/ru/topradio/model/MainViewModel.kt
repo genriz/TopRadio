@@ -193,6 +193,17 @@ class MainViewModel: ViewModel() {
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
             .edit().putStringSet("favorites", AppData.favorites).apply()
         getFavoriteStations()
+        viewedStations.forEach {
+            if (it.id==station.id){
+                it.isFavorite = station.isFavorite
+            }
+        }
+        AppData.stations.forEach {
+            if (it.id==station.id){
+                it.isFavorite = station.isFavorite
+            }
+        }
+        AppData.saveStationViewedList(context, viewedStations)
     }
 
     fun getViewedStations(context: Context){

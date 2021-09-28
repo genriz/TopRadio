@@ -307,8 +307,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 viewModel.stationPager.value = playerStationsAdapter.currentList[position]
-                if (viewModel.stationPager.value!!.id!=service.station.id){
-                    viewModel.playerWaiting.value = false
+                if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
+                    &&service.station.id!=viewModel.stationPager.value!!.id) {
+                    playStation(viewModel.stationPager.value!!)
+                } else {
+                    if (viewModel.stationPager.value!!.id!=service.station.id){
+                        viewModel.playerWaiting.value = false
+                    }
                 }
                 viewModel.setViewedStation(this@MainActivity,
                     playerStationsAdapter.currentList[position])
@@ -329,7 +334,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         }
         binding.playerView.playPauseExtended.setOnClickListener {
             if (service.station.id == viewModel.stationPager.value!!.id
-                &&stationBitrate==selectedBitrate) {
+                //&&stationBitrate==selectedBitrate
+            ) {
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
                 else {
@@ -378,7 +384,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             .addBottomSheetCallback(object:BottomSheetBehavior.BottomSheetCallback(){
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == BottomSheetBehavior.STATE_COLLAPSED){
-                        Log.v("DASD", service.station.name)
                         if (service.station.name==""){
                             BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                             BottomSheetBehavior.from(binding.playerView.root).state =
@@ -404,6 +409,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                         }
                         binding.playerView.playerMini.visibility = View.GONE
                         hideKeyboard()
+                        if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
+                            &&service.station.id!=viewModel.stationPager.value!!.id) {
+                            playStation(viewModel.stationPager.value!!)
+                        }
                     } else
                     if (newState == BottomSheetBehavior.STATE_DRAGGING){
                         if (!binding.playerView.playerExpanded.isVisible) {
@@ -436,17 +445,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 binding.playerView.playerPager
                     .setCurrentItem(position, false)
                 playerStationsAdapter.notifyItemChanged(position)
+                BottomSheetBehavior.from(binding.playerView.root).state =
+                    BottomSheetBehavior.STATE_EXPANDED
             }
         else
             playerStationsAdapter.submitList(viewModel.stations.value!!){
                 binding.playerView.playerPager
                     .setCurrentItem(position, false)
                 playerStationsAdapter.notifyItemChanged(position)
+                BottomSheetBehavior.from(binding.playerView.root).state =
+                    BottomSheetBehavior.STATE_EXPANDED
             }
-        BottomSheetBehavior.from(binding.playerView.root).state = BottomSheetBehavior.STATE_EXPANDED
-        if (AppData.getSettingBoolean(this,"autoplay")) {
-            playStation(viewModel.stationPager.value!!)
-        }
+
 
         //TODO
         //viewModel.showAds.value = true

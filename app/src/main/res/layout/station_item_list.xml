@@ -60,6 +60,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="21dp"
+            android:src="@drawable/ic_favorite_off"
             setFavorite="@{station.favorite}"
             android:padding="8dp"/>
 

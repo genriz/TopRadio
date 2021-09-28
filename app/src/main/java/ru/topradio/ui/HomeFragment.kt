@@ -70,10 +70,10 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
                     binding.adapter!!.submitList(stationsWithAds)
                 } else binding.adapter!!.submitList(it)
 
-                if ((activity as MainActivity).scrollToFirst) {
-                    binding.adapter!!.submitList(ArrayList<Station>())
-                    (activity as MainActivity).scrollToFirst = false
-                }
+//                if ((activity as MainActivity).scrollToFirst) {
+//                    binding.adapter!!.submitList(ArrayList<Station>())
+//                    (activity as MainActivity).scrollToFirst = false
+//                }
 
             }
         })

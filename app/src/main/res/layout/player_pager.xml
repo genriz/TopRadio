@@ -49,7 +49,7 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:src="@drawable/ic_favorite_off_station"
-                        setFavoritePlayer="@{viewModel.stationPager.favorite}"
+                        setFavorite="@{viewModel.stationPager.favorite}"
                         android:padding="2dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
@@ -64,7 +64,7 @@
                     app:layout_constraintTop_toBottomOf="@id/toolbarPlayer"
                     app:layout_constraintBottom_toTopOf="@id/progressPlayerExtended"/>
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:id="@+id/recordExtended"
@@ -75,14 +75,14 @@
                     app:layout_constraintEnd_toStartOf="@id/playPauseExtended"
                     app:layout_constraintStart_toStartOf="parent"
                     app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
+                    app:shapeAppearanceOverlay="@style/circleCardView"
                     android:layout_margin="20dp">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_record_off"
                         setRecordingIconExtended="@{viewModel.playerRecording}" />
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -95,7 +95,7 @@
                     android:gravity="center"
                     android:text="@{viewModel.recordTime}"/>
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:id="@+id/playPauseExtended"
@@ -105,14 +105,14 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
+                    app:shapeAppearanceOverlay="@style/circleCardView"
                     android:layout_marginBottom="60dp">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_play_extended"
                         setPlayingIconExtended="@{viewModel.stationPager.isPlaying}" />
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
                 <ProgressBar
                     android:id="@+id/progressPlayerExtended"
                     android:layout_width="0dp"
@@ -128,7 +128,7 @@
                     android:layout_marginStart="-22dp"
                     android:layout_marginEnd="-22dp"/>
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:id="@+id/playlistExtended"
@@ -139,14 +139,14 @@
                     app:layout_constraintStart_toEndOf="@id/playPauseExtended"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:cardElevation="20dp"
-                    app:cardCornerRadius="100dp"
+                    app:shapeAppearanceOverlay="@style/circleCardView"
                     android:layout_margin="20dp"
                     android:visibility="@{viewModel.stationPager.playList==null?View.GONE:View.VISIBLE}">
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_playlist" />
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -224,7 +224,7 @@
                     app:layout_constraintEnd_toStartOf="@id/playPause"
                     android:padding="2dp"
                     android:layout_marginEnd="11dp"
-                    setFavoritePlayer="@{viewModel.station.favorite}"/>
+                    setFavorite="@{viewModel.station.favorite}"/>
 
                 <ProgressBar
                     android:id="@+id/progressPlayer"

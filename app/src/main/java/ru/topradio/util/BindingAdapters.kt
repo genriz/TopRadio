@@ -55,26 +55,8 @@ fun setIcon (view: ImageView, path: String?){
 
 @BindingAdapter("setFavorite")
 fun setFavorite (view: ImageView, favorite: Boolean){
-    if (favorite) Glide.with(view)
-        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_on))
-        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
-        .into(view)
-    else Glide.with(view)
-        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
-        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
-        .into(view)
-}
-
-@BindingAdapter("setFavoritePlayer")
-fun setFavoritePlayer (view: ImageView, favorite: Boolean){
-    if (favorite) Glide.with(view)
-        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_on))
-        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
-        .into(view)
-    else Glide.with(view)
-        .load(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off_player))
-        .placeholder(ContextCompat.getDrawable(view.context, R.drawable.ic_favorite_off))
-        .into(view)
+    if (favorite) view.setImageResource(R.drawable.ic_favorite_on)
+    else view.setImageResource(R.drawable.ic_favorite_off)
 }
 
 @BindingAdapter("setPlayingIcon")
