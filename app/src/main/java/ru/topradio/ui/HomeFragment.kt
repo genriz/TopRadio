@@ -80,7 +80,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
             it?.let{ position ->
-                binding.adapter!!.notifyItemChanged(position)
+                binding.adapter!!.notifyItemChanged(position+(position/19)+1)
             }
         })
 
