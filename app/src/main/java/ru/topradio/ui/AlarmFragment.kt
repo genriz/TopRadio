@@ -114,7 +114,31 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
     private fun setAlarm() {
         requireContext().stopService(Intent(requireContext(), AlarmService::class.java))
         cal.set(Calendar.SECOND,0)
-        if (cal.timeInMillis>Calendar.getInstance().timeInMillis||repeatDays.size>0) {
+        if (cal.timeInMillis>Calendar.getInstance().timeInMillis
+            &&repeatDays.size==0) {
+            val alarm = Alarm().apply {
+                dateTime = cal.timeInMillis
+                station = stationSelected
+                repeat = repeatDays
+            }
+            val intent = Intent(requireContext(), AlarmService::class.java)
+            val serviceBundle = Bundle()
+            serviceBundle.putSerializable("alarm", alarm)
+            intent.putExtra("setAlarm", serviceBundle)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                requireContext().startForegroundService(intent)
+            } else {
+                requireContext().startService(intent)
+            }
+        } else if (repeatDays.size>0) {
+            cal.set(Calendar.DAY_OF_MONTH,Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
+            cal.set(Calendar.MONTH,Calendar.getInstance().get(Calendar.MONTH))
+            if (!repeatDays.contains("${cal.get(Calendar.DAY_OF_WEEK)}")) {
+                cal.add(Calendar.DATE,1)
+                while (!repeatDays.contains("${cal.get(Calendar.DAY_OF_WEEK)}")) {
+                    cal.add(Calendar.DATE, 1)
+                }
+            }
             val alarm = Alarm().apply {
                 dateTime = cal.timeInMillis
                 station = stationSelected
@@ -132,6 +156,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
         } else {
             binding.switchAlarm.isChecked = false
             Toast.makeText(requireContext(), R.string.alarm_wrong_time, Toast.LENGTH_SHORT).show()
+
         }
     }
 
@@ -155,6 +180,7 @@ class AlarmFragment: Fragment(), DialogStations.OnDialogStationClick, DayAdapter
             repeatDays.remove("${AppData.calDays[position]}")
         }
         AppData.setRepeatDays(requireContext(), repeatDays)
+        if (repeatDays.size==0) cal.timeInMillis = viewModel.date.value!!
         if (binding.switchAlarm.isChecked) setAlarm()
     }
 }

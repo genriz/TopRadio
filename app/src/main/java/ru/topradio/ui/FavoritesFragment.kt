@@ -50,7 +50,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         setHasOptionsMenu(true)
 
-        (activity as MainActivity).viewModel.stationsFavorites.observe(viewLifecycleOwner,{
+        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
                 binding.adapter!!.submitList(ArrayList<Station>())
 //                if ((activity as MainActivity).scrollToFirst) {
@@ -86,6 +86,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
     override fun onFavoriteClick(station: Station, position: Int) {
         station.isFavorite = !station.isFavorite
         (activity as MainActivity).viewModel.updateStationFavorite(requireContext(), station)
+        (activity as MainActivity).viewModel.getFavoriteStations()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -127,7 +128,8 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
     }
 
     override fun onDetach() {
-        (activity as MainActivity).viewModel.clearSearchStationsFavorites()
+        (activity as MainActivity).scrollToFirst = false
+//        (activity as MainActivity).viewModel.clearSearchStations()
         super.onDetach()
     }
 }

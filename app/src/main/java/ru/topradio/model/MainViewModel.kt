@@ -56,7 +56,7 @@ class MainViewModel: ViewModel() {
     val viewTypeValue = MutableLiveData<String>()
     private val viewedStations = ArrayList<Station>()
     val state = MutableLiveData<State>().apply { value = State.STATE_OK }
-    val showAds = MutableLiveData<Boolean>().apply { value = true }
+    val showAds = MutableLiveData<Boolean>().apply { value = false }
 
     fun getAllStations(){
         AppData.stations.forEach { station ->
@@ -72,7 +72,7 @@ class MainViewModel: ViewModel() {
         AppData.stations.forEach {station->
             if (station.isFavorite) favorites.add(station)
         }
-        stationsFavoritesApp.postValue(favorites)
+        stationsApi.postValue(favorites)
     }
 
     fun getGenreStations(genreId: Int){
@@ -144,7 +144,7 @@ class MainViewModel: ViewModel() {
                 stations.add(it)
         }
         stations.sortBy { it.position }
-        stationsFavoritesApp.postValue(stations)
+        stationsApi.postValue(stations)
     }
 
     fun clearSearchStations (){
@@ -152,7 +152,7 @@ class MainViewModel: ViewModel() {
     }
 
     fun clearSearchStationsFavorites (){
-        stationsFavoritesApp.postValue(AppData.stations)
+        getFavoriteStations()
     }
 
     fun searchGenres (query: String){
@@ -192,7 +192,6 @@ class MainViewModel: ViewModel() {
         else AppData.favorites.remove(station.id.toString())
         context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
             .edit().putStringSet("favorites", AppData.favorites).apply()
-        getFavoriteStations()
         viewedStations.forEach {
             if (it.id==station.id){
                 it.isFavorite = station.isFavorite

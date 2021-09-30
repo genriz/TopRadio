@@ -151,6 +151,10 @@ class PlayerService: Service() {
         setPlayer()
     }
 
+    fun changeStation(station: Station) {
+        player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+    }
+
     fun setSingleStation(){
         player.clearMediaItems()
         player.setMediaItem(MediaItem.Builder()
@@ -374,11 +378,13 @@ class PlayerService: Service() {
             if (bitrateIndex < station.bitrates.size) {
                 setBitrate(bitrateIndex)
             } else {
-                player.stop()
-                stopped = true
-                playerNotificationManager?.setPlayer(null)
-                stopForeground(true)
-                stopSelf()
+                if (fromAlarm) {
+                    player.stop()
+                    stopped = true
+                    playerNotificationManager?.setPlayer(null)
+                    stopForeground(true)
+                    stopSelf()
+                }
 //                bitrateIndex = 0
 //                player.setMediaItem(
 //                    MediaItem.Builder()

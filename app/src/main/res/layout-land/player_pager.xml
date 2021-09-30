@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:behavior_hideable="true"
-        app:behavior_peekHeight="100dp"
+        app:behavior_peekHeight="60dp"
         app:cardElevation="50dp"
         android:background="@color/back_main_container"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
@@ -162,8 +162,7 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:layout_constraintHeight_percent="0.15"
+                android:layout_height="60dp"
                 app:layout_constraintTop_toTopOf="parent"
                 android:id="@+id/playerMini"
                 android:background="@color/small_player_back">
@@ -174,9 +173,9 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginBottom="17dp"
-                    android:layout_marginStart="25dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginStart="12dp"
                     android:elevation="10dp"
                     android:background="@color/back_main_container"
                     app:cardCornerRadius="8dp"
@@ -203,7 +202,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/roboto_medium"
-                        android:textSize="15sp"
+                        android:textSize="12sp"
                         android:textColor="@color/stations_list"
                         android:text="@{viewModel.station.name}"
                         android:maxLines="1"
@@ -213,7 +212,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/roboto"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textColor="@color/stations_list"
                         android:text="@{viewModel.station.track}"
                         android:singleLine="true"
@@ -222,7 +221,7 @@
                         android:scrollHorizontally="true"
                         android:focusable="true"
                         android:focusableInTouchMode="true"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="3dp"
                         android:visibility="@{viewModel.station.isPlaying?View.VISIBLE:View.INVISIBLE}"/>
                 </LinearLayout>
 
@@ -235,7 +234,7 @@
                     app:layout_constraintBottom_toBottomOf="@id/playPause"
                     app:layout_constraintEnd_toStartOf="@id/playPause"
                     android:padding="2dp"
-                    android:layout_marginEnd="11dp"
+                    android:layout_marginEnd="16dp"
                     setFavorite="@{viewModel.station.favorite}"/>
 
                 <ProgressBar
@@ -263,8 +262,8 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     setPlayingIcon="@{viewModel.station.isPlaying}"
                     android:layout_marginEnd="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="17dp"/>
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View

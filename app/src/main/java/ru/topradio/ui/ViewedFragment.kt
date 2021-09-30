@@ -124,7 +124,7 @@ class ViewedFragment: Fragment(),
 
     override fun onDetach() {
         (activity as MainActivity).scrollToFirst = false
-        (activity as MainActivity).viewModel.clearSearchStations()
+        //(activity as MainActivity).viewModel.clearSearchStations()
         super.onDetach()
     }
 }

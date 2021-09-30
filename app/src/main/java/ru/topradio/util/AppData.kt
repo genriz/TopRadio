@@ -122,4 +122,18 @@ object AppData {
         return if (json=="") ArrayList()
             else gson.fromJson(json, type)
     }
+
+    fun arraysEqualsContent(array1: ArrayList<Station>,
+                            array2: ArrayList<Station>):Boolean{
+        var equals = true
+        if (array1.size==array2.size){
+            for (i in 0 until array1.size){
+                if (array1[i].id!=array2[i].id) {
+                    equals = false
+                    break
+                }
+            }
+        } else equals = false
+        return equals
+    }
 }

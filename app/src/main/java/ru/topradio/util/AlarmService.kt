@@ -23,7 +23,6 @@ class AlarmService: Service() {
 
     private var wakeLock: PowerManager.WakeLock? = null
     private var isServiceStarted = false
-    private var alarmIntent: PendingIntent? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -101,20 +100,18 @@ class AlarmService: Service() {
         serviceBundle.putBoolean("fromAlarm", true)
         intent.putExtra("bundle", serviceBundle)
 
-        alarmIntent = PendingIntent.getService(
+        val alarmIntent = PendingIntent.getService(
             applicationContext, 0,
             intent, PendingIntent.FLAG_UPDATE_CURRENT)
         (getSystemService(ALARM_SERVICE) as AlarmManager).setExact(
             AlarmManager.RTC_WAKEUP,
             alarm.dateTime,
-            alarmIntent!!)
+            alarmIntent)
 
         startForeground(1021, notification)
     }
 
     override fun onDestroy() {
-        (getSystemService(ALARM_SERVICE) as AlarmManager).cancel(alarmIntent!!)
-        alarmIntent = null
         wakeLock?.let {
             if (it.isHeld) {
                 it.release()
