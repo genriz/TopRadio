@@ -59,16 +59,12 @@ class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange,
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
 
-//        val bufferSetting = AppData.getSettingInt(requireContext(),"buffer")
-//        val buffer = if (AppData.bufferSizes[bufferSetting]<1000)
-//            "${AppData.bufferSizes[bufferSetting]} ${requireContext().getString(R.string.ms)}"
-//        else "${AppData.bufferSizes[bufferSetting]/1000} ${requireContext().getString(R.string.sec)}"
-//        binding.bufferSize.text = buffer
 
         binding.viewModel!!.timerValue.value = AppData.getSettingInt(requireContext(),"timer")
         binding.settingTimer.setOnClickListener {
             val dialog = DialogSeekbar(requireContext(),this)
             dialog.setProgress(binding.viewModel!!.timerValue.value!!/10)
+//            dialog.setProgress(binding.viewModel!!.timerValue.value!!)
             dialog.show()
             dialog.setOnDismissListener {
                 AppData.setSettingInt(requireContext(), "timer",

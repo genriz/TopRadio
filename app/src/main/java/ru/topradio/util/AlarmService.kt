@@ -7,10 +7,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
-import android.util.Log
 import ru.topradio.R
 import ru.topradio.model.Alarm
-import ru.topradio.model.Station
 import ru.topradio.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -44,14 +42,13 @@ class AlarmService: Service() {
             wakeLock =
                 (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
                     newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AlarmService2::lock").apply {
-                        acquire()
+                        acquire(10000)
                     }
                 }
             val command = "ping -c 1 google.com"
             Runtime.getRuntime().exec(command).waitFor()
             while (isServiceStarted) {
                 launch(Dispatchers.IO) {
-                    Log.v("DASD","service is running")
                     wakeLock?.let {
                         if (it.isHeld) {
                             it.release()

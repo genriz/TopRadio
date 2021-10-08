@@ -43,6 +43,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
             binding.adapter = StationsListGridAdapter(this)
         }
         binding.lifecycleOwner = this
+        requireActivity().window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
         return binding.root
     }
 
@@ -50,6 +51,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
         super.onViewCreated(view, savedInstanceState)
 
         setHasOptionsMenu(true)
+
+        (activity as MainActivity).hideKeyboard()
 
         (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
             if (it!=null){
@@ -67,8 +70,8 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
                         stationsWithAds.add(station)
                         adsPos++
                     }
-                    binding.adapter!!.submitList(stationsWithAds)
-                } else binding.adapter!!.submitList(it)
+                    binding.adapter!!.submitList(stationsWithAds.toMutableList())
+                } else binding.adapter!!.submitList(it.toMutableList())
 
 //                if ((activity as MainActivity).scrollToFirst) {
 //                    binding.adapter!!.submitList(ArrayList<Station>())
@@ -104,7 +107,7 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).showPlayer(true)
+        (activity as MainActivity).showPlayer((activity as MainActivity).viewModel.stations.value!!)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {

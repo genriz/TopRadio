@@ -15,7 +15,8 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@id/logo"
         android:layout_marginBottom="24dp"
-        android:src="@drawable/splashup"/>
+        android:src="@drawable/splashup"
+        tools:ignore="ContentDescription" />
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -30,7 +31,8 @@
         app:layout_constraintTop_toBottomOf="@id/logo"
         android:layout_marginTop="24dp"
         android:src="@drawable/splashdown"
-        android:adjustViewBounds="true"/>
+        android:adjustViewBounds="true"
+        tools:ignore="ContentDescription" />
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -44,10 +46,11 @@
         app:layout_constraintWidth_percent="0.6"
         android:layout_height="0dp"
         app:layout_constraintDimensionRatio="1:0.28"
-        android:src="@drawable/ic_logo"
+        android:src="@drawable/ic_logo1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

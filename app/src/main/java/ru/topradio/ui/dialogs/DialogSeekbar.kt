@@ -44,6 +44,7 @@ class DialogSeekbar(context:Context, private val listener: OnSeekBarChange):
                 binding.seekBar.progress = progress
                 setTextProgress(progress, seekBar)
                 listener.onSeekbarChanged(progress*10)
+//                listener.onSeekbarChanged(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -58,6 +59,7 @@ class DialogSeekbar(context:Context, private val listener: OnSeekBarChange):
 
     private fun setTextProgress(progress: Int, seekBar: SeekBar) {
         binding.label.text = (progress*10).toString()
+//        binding.label.text = (progress).toString()
         val width = seekBar.width - seekBar.paddingLeft - seekBar.paddingRight
         val thumbPos = seekBar.paddingLeft + width * seekBar.progress / seekBar.max
 

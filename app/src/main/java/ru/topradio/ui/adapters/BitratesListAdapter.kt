@@ -1,5 +1,6 @@
 package ru.topradio.ui.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -16,9 +17,9 @@ class BitratesListAdapter(private val listener: OnClickListener):
 
     companion object: DiffUtil.ItemCallback<Bitrate>() {
         override fun areItemsTheSame(oldItem: Bitrate, newItem: Bitrate):
-                Boolean = oldItem === newItem
+                Boolean = oldItem == newItem
         override fun areContentsTheSame(oldItem: Bitrate, newItem: Bitrate):
-                Boolean = oldItem.bitrate == newItem.bitrate
+                Boolean = oldItem.url == newItem.url
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BitrateViewHolder {

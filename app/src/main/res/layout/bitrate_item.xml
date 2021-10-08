@@ -16,18 +16,17 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/bitrateBack"
-            android:layout_width="0dp"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintDimensionRatio="2:1"
             app:shapeAppearanceOverlay="@style/circleCardView"
             app:cardBackgroundColor="@color/bitrate_back">
             <TextView
                 android:id="@+id/bitrateText"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
+                android:layout_gravity="center"
                 android:textSize="14sp"
                 android:layout_margin="4dp"
                 android:text="@{String.valueOf(bitrate.bitrate)}"

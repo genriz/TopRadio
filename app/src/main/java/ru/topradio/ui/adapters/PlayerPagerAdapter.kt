@@ -27,6 +27,10 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
     : ListAdapter<Station, StationViewHolder>(StationItemDiffCallback()),
     BitratesListAdapter.OnClickListener {
 
+    override fun getItemId(position: Int): Long {
+        return getItem(position).id.toLong()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = PlayerPagerItemBinding.inflate(layoutInflater,parent,false)
@@ -42,16 +46,18 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
                 listener.onCopyClick(station.track)
         }
         holder.binding.trackNameExpanded.isSelected = true
-        Glide.with(holder.binding.imageView3).load(R.raw.player_bars_up)
+        Glide.with(context).load(R.raw.player_bars_up)
             .into(holder.binding.imageView3)
-        Glide.with(holder.binding.imageView4).load(R.raw.player_bars_down)
+        Glide.with(context).load(R.raw.player_bars_down)
             .into(holder.binding.imageView4)
         val bitratesAdapter = BitratesListAdapter(this)
         holder.binding.adapter = bitratesAdapter
+
+        holder.binding.executePendingBindings()
+
         bitratesAdapter.submitList(station.bitrates)
         holder.binding.recyclerBitrates.layoutManager = LinearLayoutManager(context,
             LinearLayoutManager.HORIZONTAL, false)
-        holder.binding.executePendingBindings()
 
         holder.binding.adsBannerContainer.visibility = View.GONE
         holder.binding.iconCardExpanded.visibility = View.VISIBLE
@@ -110,9 +116,9 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
 
 class StationItemDiffCallback : DiffUtil.ItemCallback<Station>() {
     override fun areItemsTheSame(oldItem: Station, newItem: Station):
-            Boolean = oldItem === newItem
-    override fun areContentsTheSame(oldItem: Station, newItem: Station):
             Boolean = oldItem.id == newItem.id
+    override fun areContentsTheSame(oldItem: Station, newItem: Station):
+            Boolean = oldItem == newItem
 }
 
 class StationViewHolder(val binding: PlayerPagerItemBinding) :

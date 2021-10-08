@@ -82,8 +82,8 @@
             app:layout_constraintWidth_percent="0.3">
             <ImageView
                 setIcon="@{station.icon}"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView

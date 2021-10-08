@@ -35,7 +35,7 @@ class StationsListAdapter(private val context: Context,
         override fun areItemsTheSame(oldItem: Station, newItem: Station):
                 Boolean = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: Station, newItem: Station):
-                Boolean = oldItem.id == newItem.id
+                Boolean = oldItem == newItem
     }
 
     override fun getItemViewType(position: Int): Int {

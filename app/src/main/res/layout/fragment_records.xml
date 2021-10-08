@@ -29,7 +29,11 @@
             app:layout_constraintBottom_toBottomOf="parent"
             setAdapter="@{adapter}"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            android:layout_marginTop="7dp"/>
+            android:layout_marginTop="7dp"
+            android:scrollbars="vertical"
+            android:scrollbarSize="10dp"
+            android:scrollbarFadeDuration="0"
+            android:scrollbarThumbVertical="@drawable/scrollbar"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

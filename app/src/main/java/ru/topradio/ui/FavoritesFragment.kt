@@ -60,6 +60,13 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
             }
         })
 
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
+            it?.let{ position ->
+                //binding.adapter!!.notifyItemChanged(position)
+                (activity as MainActivity).viewModel.getFavoriteStations()
+            }
+        })
+
         (activity as MainActivity).viewModel.getFavoriteStations()
 
 //        requireActivity()
@@ -80,7 +87,7 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.setViewedStation(requireContext(), station)
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).showPlayer(false)
+        (activity as MainActivity).showPlayer((activity as MainActivity).viewModel.stations.value!!)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {

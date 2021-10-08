@@ -1,7 +1,6 @@
 package ru.topradio.ui
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -42,6 +41,9 @@ import ru.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
 import ru.topradio.ui.dialogs.DialogStationOff
 import java.lang.Exception
@@ -56,7 +58,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     private lateinit var binding: ActivityMainBinding
     lateinit var service: PlayerService
     lateinit var player: SimpleExoPlayer
-    private var bound = false
     private val playerStationsAdapter by lazy {PlayerPagerAdapter(this, this,
         viewModel.showAds,this)}
     private val android11StorageRequest = 3434
@@ -66,6 +67,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     var scrollToFirst = false
     private val handlerAds = Handler(Looper.getMainLooper())
     private var fromUser = false
+    private var clickedPosition = 0
+    private val pagerStations = ArrayList<Station>()
 
     private val serviceConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, iBinder: IBinder) {
@@ -73,19 +76,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             service = binder.service
             player = binder.player
             if (binder.station.name!="") {
-                bound = true
                 viewModel.station.value = AppData.getStationById(binder.station.id)
-                viewModel.station.value!!.isPlaying = binder.station.isPlaying
+                viewModel.station.value!!.isPlaying = player.isPlaying
                 viewModel.station.value!!.track = binder.station.track
                 viewModel.station.value!!.bitrates = binder.station.bitrates
                 viewModel.playerRecording.value = binder.station.isRecording
                 viewModel.stationPager.value = viewModel.station.value!!
-                showPlayer(true)
+                showPlayer(AppData.stationsPlayer)
             }
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
-            bound = false
+
         }
     }
 
@@ -111,25 +113,30 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     if (intent.getBooleanExtra("isError", false)){
                         showStationOffDialog()
                         viewModel.playerWaiting.value = false
-                        service.station = Station()
+                        //service.station = Station()
                     }
                 } else {
                     if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id) {
                         viewModel.stationPager.value = viewModel.station.value
+                    }
+//                    else {
+//                        viewModel.stationPager.value!!.isPlaying = false
+//                        viewModel.stationPager.value = viewModel.stationPager.value
+//                    }
+
+                    if (BottomSheetBehavior.from(binding.playerView.root).state ==
+                            BottomSheetBehavior.STATE_HIDDEN){
+                        viewModel.stationPager.value = viewModel.station.value
+                        showPlayer(AppData.stationsPlayer)
                     } else {
-                        viewModel.stationPager.value!!.isPlaying = false
-                        viewModel.stationPager.value = viewModel.stationPager.value
                         val position = viewModel.getStationPosition(viewModel.station.value!!,
                             AppData.stationsPlayer)
-                        binding.playerView.playerPager
-                            .setCurrentItem(position, false)
+//                    binding.playerView.playerPager
+//                        .setCurrentItem(position, false)
                         playerStationsAdapter.notifyItemChanged(position)
+                        viewModel.playerWaiting.value = false
+
                     }
-                    playerStationsAdapter
-                        .notifyItemChanged(viewModel
-                            .getStationPosition(viewModel.stationPager.value!!,
-                                AppData.stationsPlayer))
-                    viewModel.playerWaiting.value = false
                 }
             }
             if (intent?.action == "player_track_name") {
@@ -213,7 +220,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             when (destination.id){
                 R.id.menu_home -> {
                     supportActionBar!!.title = ""
-                    supportActionBar!!.setIcon(R.drawable.ic_logo)
+                    supportActionBar!!.setIcon(R.drawable.ic_logo2)
                 }
                 R.id.favorites -> {
                     supportActionBar!!.title = getString(R.string.favorites)
@@ -240,11 +247,11 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                     supportActionBar!!.setIcon(null)
                 }
                 R.id.menu_playlist -> {
-                    BottomSheetBehavior.from(binding.playerView.root).isHideable = true
-                    BottomSheetBehavior.from(binding.playerView.root).state =
-                        BottomSheetBehavior.STATE_HIDDEN
-                    supportActionBar!!.title = viewModel.stationPager.value!!.name
-                    supportActionBar!!.setIcon(null)
+//                    BottomSheetBehavior.from(binding.playerView.root).isHideable = true
+//                    BottomSheetBehavior.from(binding.playerView.root).state =
+//                        BottomSheetBehavior.STATE_HIDDEN
+//                    supportActionBar!!.title = viewModel.stationPager.value!!.name
+//                    supportActionBar!!.setIcon(null)
                 }
                 R.id.menu_alarm -> {
                     supportActionBar!!.title = getString(R.string.menu_alarm)
@@ -304,19 +311,25 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
         binding.playerView.playerPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                viewModel.stationPager.value = playerStationsAdapter.currentList[position]
+                if (position!=clickedPosition) {
+                    viewModel.stationPager.value = pagerStations[position]
+                    fromUser = true
+                    clickedPosition = -1
+                }
                 if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
                     &&service.station.id!=viewModel.stationPager.value!!.id
                     &&fromUser) {
-                        service.changeStation(viewModel.stationPager.value!!)
+                        viewModel.stationPager.value = pagerStations[position]
+                        service.changeStation(viewModel.stationPager.value!!, position)
                 } else {
                     if (viewModel.stationPager.value!!.id!=service.station.id){
                         viewModel.playerWaiting.value = false
                     }
                 }
-                fromUser = true
                 viewModel.setViewedStation(this@MainActivity,
-                    playerStationsAdapter.currentList[position])
+                    pagerStations[position])
+                playerStationsAdapter
+                    .notifyItemChanged(position)
             }
         })
         binding.playerView.playPause.setOnClickListener {
@@ -324,29 +337,34 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                 if (viewModel.station.value!!.isPlaying)
                     player.pause()
                 else {
-                    //viewModel.playerWaiting.value = true
+                    viewModel.playerWaiting.value = true
                     player.prepare()
                     player.play()
                 }
             } else {
+                viewModel.playerWaiting.value = true
                 playStation(viewModel.station.value!!)
             }
         }
         binding.playerView.playPauseExtended.setOnClickListener {
-            if (service.station.id == viewModel.stationPager.value!!.id
-                //&&stationBitrate==selectedBitrate
-            ) {
-                if (viewModel.station.value!!.isPlaying)
+            if (service.station.id == viewModel.stationPager.value!!.id) {
+                if (viewModel.stationPager.value!!.isPlaying)
                     player.pause()
                 else {
-                    //viewModel.playerWaiting.value = true
+                    viewModel.playerWaiting.value = true
                     player.prepare()
                     player.play()
                 }
             } else if (fromUser&&AppData.arraysEqualsContent(AppData.stationsPlayer,
-                    ArrayList(playerStationsAdapter.currentList)))
-                service.changeStation(viewModel.stationPager.value!!)
-            else playStation(viewModel.stationPager.value!!)
+                    ArrayList(playerStationsAdapter.currentList))) {
+                viewModel.playerWaiting.value = true
+                val position = viewModel.getStationPosition(viewModel.station.value!!,
+                    AppData.stationsPlayer)
+                service.changeStation(viewModel.stationPager.value!!, position)
+            } else {
+                viewModel.playerWaiting.value = true
+                playStation(viewModel.stationPager.value!!)
+            }
         }
         binding.playerView.favoritePlayer.setOnClickListener {
             viewModel.station.value!!.isFavorite = !viewModel.station.value!!.isFavorite
@@ -373,7 +391,9 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             }
         }
         binding.playerView.playlistExtended.setOnClickListener {
-            navController.navigate(R.id.menu_playlist)
+            val bundle = Bundle()
+            bundle.putSerializable("station", viewModel.stationPager.value!!)
+            navController.navigate(R.id.menu_playlist, bundle)
         }
 
         binding.playerView.root.setOnClickListener {
@@ -402,23 +422,14 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
                         }
                         binding.playerView.playerExpanded.visibility = View.GONE
                         hideKeyboard()
+                        fromUser = false
                     } else
                     if (newState == BottomSheetBehavior.STATE_EXPANDED){
-                        if (AppData.arraysEqualsContent(AppData.stationsPlayer,
-                                ArrayList(playerStationsAdapter.currentList))
-                            &&!fromUser){
-                            playerStationsAdapter.submitList(AppData.stationsPlayer){
-                                val position = viewModel.getStationPosition(viewModel.station.value!!,
-                                    AppData.stationsPlayer)
-                                binding.playerView.playerPager
-                                    .setCurrentItem(position, false)
-                                playerStationsAdapter.notifyItemChanged(position)
-                            }
-                        }
                         binding.playerView.playerMini.visibility = View.GONE
                         hideKeyboard()
                         if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
-                            &&service.station.id!=viewModel.stationPager.value!!.id) {
+                                    &&service.station.id!=viewModel.stationPager.value!!.id) {
+                            viewModel.playerWaiting.value = true
                             playStation(viewModel.stationPager.value!!)
                         }
                     } else
@@ -442,49 +453,45 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
             })
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    fun showPlayer(mainStations: Boolean){
-        val position = viewModel
+    fun showPlayer(stations: ArrayList<Station>){
+        pagerStations.clear()
+        pagerStations.addAll(stations)
+        clickedPosition = viewModel
             .getStationPosition(viewModel.stationPager.value!!,
-                viewModel.stations.value!!)
+                stations)
         binding.playerView.playerExpanded.visibility = View.VISIBLE
         fromUser = false
-        playerStationsAdapter.submitList(viewModel.stations.value!!){
+        playerStationsAdapter.submitList(null)
+        playerStationsAdapter.notifyDataSetChanged()
+        playerStationsAdapter.submitList(stations){
             binding.playerView.playerPager
-                .setCurrentItem(position, false)
-            playerStationsAdapter.notifyItemChanged(position)
+                .setCurrentItem(clickedPosition, false)
+            playerStationsAdapter.notifyItemChanged(clickedPosition)
             BottomSheetBehavior.from(binding.playerView.root).state =
                 BottomSheetBehavior.STATE_EXPANDED
         }
-
-        //TODO
-        //viewModel.showAds.value = true
+        viewModel.showAds.value = true
     }
 
     private fun playStation(station: Station){
-        viewModel.playerWaiting.value = true
-        if (!bound){
-            AppData.stationsPlayer.clear()
-            AppData.stationsPlayer.addAll(playerStationsAdapter.currentList)
-            AppData.stationsPlayer.forEach {
-                it.isPlaying = false
-                it.track = ""
-            }
-            viewModel.station.value = viewModel.stationPager.value
-            playerStationsAdapter.submitList(AppData.stationsPlayer){
-                playerStationsAdapter.notifyItemChanged(viewModel
-                    .getStationPosition(viewModel.station.value!!,AppData.stationsPlayer))
-                val intent = Intent(this, PlayerService::class.java)
-                val serviceBundle = Bundle()
-                serviceBundle.putSerializable("station", station)
-                serviceBundle.putBoolean("fromAlarm", false)
-                intent.putExtra("bundle", serviceBundle)
-                startService(intent)
-                stopRecord()
-            }
-        } else {
-            viewModel.playerWaiting.postValue(false)
-            bound = false
+//        viewModel.playerWaiting.value = true
+        AppData.stationsPlayer.clear()
+        AppData.stationsPlayer.addAll(pagerStations)
+        AppData.stationsPlayer.forEach {
+            it.isPlaying = false
+            it.track = ""
+        }
+        viewModel.station.value = viewModel.stationPager.value
+        playerStationsAdapter.submitList(AppData.stationsPlayer){
+            playerStationsAdapter.notifyItemChanged(viewModel
+                .getStationPosition(viewModel.station.value!!,AppData.stationsPlayer))
+            val intent = Intent(this, PlayerService::class.java)
+            val serviceBundle = Bundle()
+            serviceBundle.putSerializable("station", station)
+            serviceBundle.putBoolean("fromAlarm", false)
+            intent.putExtra("bundle", serviceBundle)
+            startService(intent)
+            stopRecord()
         }
     }
 
@@ -636,11 +643,23 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks, O
     }
 
     private fun showInternetDialog(){
-        DialogInternet(this).show()
+        CoroutineScope(Dispatchers.Main).launch {
+            val dialog = DialogInternet(this@MainActivity)
+            dialog.setOnDismissListener {
+                hideKeyboard()
+            }
+            dialog.show()
+        }
     }
 
     private fun showStationOffDialog(){
-        DialogStationOff(this).show()
+        CoroutineScope(Dispatchers.Main).launch {
+            val dialog = DialogStationOff(this@MainActivity)
+            dialog.setOnDismissListener {
+                hideKeyboard()
+            }
+            dialog.show()
+        }
     }
 
     override fun onMenuPositionClick(position: Int) {

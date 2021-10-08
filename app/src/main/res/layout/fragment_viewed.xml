@@ -16,7 +16,11 @@
             android:layout_height="match_parent"
             setAdapter="@{adapter}"
             android:clipToPadding="false"
-            android:clipChildren="false"/>
+            android:clipChildren="false"
+            android:scrollbars="vertical"
+            android:scrollbarSize="10dp"
+            android:scrollbarFadeDuration="0"
+            android:scrollbarThumbVertical="@drawable/scrollbar"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

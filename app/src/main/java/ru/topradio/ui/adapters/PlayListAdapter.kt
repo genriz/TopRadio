@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.topradio.databinding.PlaylistIemBinding
 import ru.topradio.model.PlaylistItem
 
-class PlayListAdapter():
+class PlayListAdapter(private val listener: OnClick):
     ListAdapter<PlaylistItem, PlayListAdapter.CityViewHolder>(Companion) {
 
     class CityViewHolder(val binding: PlaylistIemBinding) :
@@ -30,6 +30,14 @@ class PlayListAdapter():
     override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
         val playlistItem = getItem(position)
         holder.binding.playlistItem = playlistItem
+        holder.binding.root.setOnClickListener {
+            if (holder.binding.itemTitle.text.isNotEmpty())
+                listener.onCopyClick(playlistItem.song)
+        }
         holder.binding.executePendingBindings()
+    }
+
+    interface OnClick{
+        fun onCopyClick(text: String)
     }
 }

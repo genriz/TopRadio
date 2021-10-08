@@ -1,7 +1,11 @@
 package ru.topradio.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import ru.topradio.R
@@ -13,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class PlaylistsFragment: Fragment() {
+class PlaylistsFragment: Fragment(), PlayListAdapter.OnClick {
 
     private lateinit var binding: FragmentPlaylistsBinding
 
@@ -23,7 +27,7 @@ class PlaylistsFragment: Fragment() {
         savedInstanceState: Bundle?): View {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_playlists,
             container, false)
-        binding.adapter = PlayListAdapter()
+        binding.adapter = PlayListAdapter(this)
         binding.lifecycleOwner = this
         return binding.root
     }
@@ -80,9 +84,15 @@ class PlaylistsFragment: Fragment() {
         })
     }
 
-    override fun onDetach() {
-        (activity as MainActivity).toExpandedPlayer()
-        super.onDetach()
+//    override fun onDetach() {
+//        (activity as MainActivity).toExpandedPlayer()
+//        super.onDetach()
+//    }
+
+    override fun onCopyClick(text: String) {
+        (requireActivity().getSystemService(AppCompatActivity.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(ClipData.newPlainText("topradio", text))
+        Toast.makeText(requireActivity(), R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
 }

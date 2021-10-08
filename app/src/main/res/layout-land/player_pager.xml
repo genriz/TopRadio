@@ -150,7 +150,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@id/playPauseExtended"
                         app:cardElevation="12dp"
-                        app:shapeAppearanceOverlay="@style/circleCardView">
+                        app:shapeAppearanceOverlay="@style/circleCardView"
+                        android:visibility="@{viewModel.stationPager.playList==null?View.GONE:View.VISIBLE}">
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"

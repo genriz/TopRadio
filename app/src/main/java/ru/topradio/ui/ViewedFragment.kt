@@ -71,7 +71,7 @@ class ViewedFragment: Fragment(),
     override fun onStationClick(station: Station) {
         (activity as MainActivity).hideKeyboard()
         (activity as MainActivity).viewModel.stationPager.value = station
-        (activity as MainActivity).showPlayer(true)
+        (activity as MainActivity).showPlayer((activity as MainActivity).viewModel.stations.value!!)
     }
 
     override fun onFavoriteClick(station: Station, position: Int) {

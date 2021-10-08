@@ -40,10 +40,15 @@
         android:name="ru.topradio.ui.SettingsFragment"
         android:id="@+id/menu_settings">
     </fragment>
-    <fragment
-        android:name="ru.topradio.ui.PlaylistsFragment"
+
+    <activity android:name="ru.topradio.ui.PlaylistActivity"
         android:id="@+id/menu_playlist">
-    </fragment>
+
+    </activity>
+<!--    <fragment-->
+<!--        android:name="ru.topradio.ui.PlaylistsFragment"-->
+<!--        android:id="@+id/menu_playlist">-->
+<!--    </fragment>-->
     <fragment
         android:name="ru.topradio.ui.AlarmFragment"
         android:id="@+id/menu_alarm">
