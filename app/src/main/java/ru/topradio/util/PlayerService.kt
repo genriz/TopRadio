@@ -139,6 +139,7 @@ class PlayerService: Service() {
             }
         }
         player.seekTo(position, C.TIME_UNSET)
+        if (!player.isPlaying) player.play()
     }
 
     private fun setPlayer() {
@@ -170,8 +171,8 @@ class PlayerService: Service() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 station.isPlaying = isPlaying
                 if (!isPlaying) {
-                    stopped = true
-                    stopForeground(false)
+                    //stopped = true
+                    //stopForeground(false)
                     if (station.isRecording) {
                         station.isRecording = false
                         if (!fromAlarm)
@@ -199,8 +200,10 @@ class PlayerService: Service() {
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
                 if (!fromAlarm&&AppData.stations.size>0)
-                station = if (events[events.size()-1]==4) Station()
-                else AppData.stationsPlayer[player.currentWindowIndex]
+                station =
+//                    if (events[events.size()-1]==4) Station()
+//                    else
+                    AppData.stationsPlayer[player.currentWindowIndex]
             }
 
             override fun onPlayerError(error: PlaybackException) {

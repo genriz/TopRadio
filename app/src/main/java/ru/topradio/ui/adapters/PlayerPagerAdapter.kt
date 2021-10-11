@@ -2,18 +2,13 @@ package ru.topradio.ui.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import ru.topradio.R
 import ru.topradio.databinding.PlayerPagerItemBinding
 import ru.topradio.model.Station
@@ -24,7 +19,7 @@ import com.google.android.gms.ads.*
 class PlayerPagerAdapter(private val context: Context, private val listener: OnClick,
                          private val showAds: MutableLiveData<Boolean>,
                          private val lifecycleOwner: LifecycleOwner)
-    : ListAdapter<Station, StationViewHolder>(StationItemDiffCallback()),
+    : ListAdapter<Station, PlayerPagerAdapter.StationViewHolder>(StationItemDiffCallback()),
     BitratesListAdapter.OnClickListener {
 
     override fun getItemId(position: Int): Long {
@@ -50,14 +45,15 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
             .into(holder.binding.imageView3)
         Glide.with(context).load(R.raw.player_bars_down)
             .into(holder.binding.imageView4)
+
         val bitratesAdapter = BitratesListAdapter(this)
+        holder.binding.recyclerBitrates.layoutManager = StaggeredGridLayoutManager(station.bitrates.size,
+            LinearLayoutManager.VERTICAL)
         holder.binding.adapter = bitratesAdapter
+        bitratesAdapter.submitList(station.bitrates)
 
         holder.binding.executePendingBindings()
 
-        bitratesAdapter.submitList(station.bitrates)
-        holder.binding.recyclerBitrates.layoutManager = LinearLayoutManager(context,
-            LinearLayoutManager.HORIZONTAL, false)
 
         holder.binding.adsBannerContainer.visibility = View.GONE
         holder.binding.iconCardExpanded.visibility = View.VISIBLE
@@ -112,19 +108,19 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         listener.onBitrateClick(position)
     }
 
-}
+    class StationItemDiffCallback : DiffUtil.ItemCallback<Station>() {
+        override fun areItemsTheSame(oldItem: Station, newItem: Station):
+                Boolean = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Station, newItem: Station):
+                Boolean = oldItem == newItem
+    }
 
-class StationItemDiffCallback : DiffUtil.ItemCallback<Station>() {
-    override fun areItemsTheSame(oldItem: Station, newItem: Station):
-            Boolean = oldItem.id == newItem.id
-    override fun areContentsTheSame(oldItem: Station, newItem: Station):
-            Boolean = oldItem == newItem
-}
+    class StationViewHolder(val binding: PlayerPagerItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
 
-class StationViewHolder(val binding: PlayerPagerItemBinding) :
-    RecyclerView.ViewHolder(binding.root)
+    interface OnClick{
+        fun onCopyClick(text: String)
+        fun onBitrateClick(position: Int)
+    }
 
-interface OnClick{
-    fun onCopyClick(text: String)
-    fun onBitrateClick(position: Int)
 }
