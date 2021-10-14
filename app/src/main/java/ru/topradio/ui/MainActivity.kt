@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     lateinit var player: SimpleExoPlayer
     private val playerStationsAdapter by lazy {PlayerPagerAdapter(this, this,
         viewModel.showAds,this)}
-    private val android11StorageRequest = 3434
     private var selectedBitrate = 0
     private var stationBitrate = 0
     private val dialogMenu by lazy { DialogMenu(this, this) }
@@ -534,11 +533,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
-            if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.R&&!Environment.isExternalStorageManager()){
-                val intent = Intent("android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION")
-                intent.data = Uri.parse("package:ru.topradio")
-                startActivityForResult(intent, android11StorageRequest)
-            } else recordAudio()
+            recordAudio()
         }
     }
 
@@ -570,22 +565,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.R&&!Environment.isExternalStorageManager()){
-            val intent = Intent("android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION")
-            intent.data = Uri.parse("package:ru.topradio")
-            startActivityForResult(intent, android11StorageRequest)
-        } else recordAudio()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode==android11StorageRequest) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
-                if (Environment.isExternalStorageManager()) {
-                    recordAudio()
-                } else checkPermissions()
-            } else recordAudio()
-        }
+        recordAudio()
     }
 
     override fun onResume() {

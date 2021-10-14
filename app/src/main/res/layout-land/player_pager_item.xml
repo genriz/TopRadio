@@ -25,7 +25,8 @@
             android:layout_height="0dp"
             app:layout_constraintHeight_percent="0.5"
             android:adjustViewBounds="true"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/imageView4"
@@ -34,7 +35,8 @@
             app:layout_constraintHeight_percent="0.5"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -72,7 +74,7 @@
             android:layout_height="0dp"
             android:layout_marginTop="5dp"
             android:background="@color/back_main_container"
-            android:elevation="10dp"
+            app:cardElevation="10dp"
             app:cardCornerRadius="30dp"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
@@ -83,7 +85,8 @@
             <ImageView
                 setIcon="@{station.icon}"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                tools:ignore="ContentDescription" />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -92,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:background="@color/back_main_container"
-            android:elevation="16dp"
+            app:cardElevation="16dp"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginStart="74dp"
             app:layout_constraintTop_toTopOf="parent"
@@ -107,8 +110,9 @@
                 android:id="@+id/adsClose"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_close"
-                android:layout_gravity="top|end"/>
+                app:srcCompat="@drawable/ic_close"
+                android:layout_gravity="top|end"
+                tools:ignore="ContentDescription" />
         </androidx.cardview.widget.CardView>
 
 <!--        <androidx.constraintlayout.widget.Barrier-->

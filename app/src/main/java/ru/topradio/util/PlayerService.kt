@@ -3,18 +3,18 @@ package ru.topradio.util
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.media.AudioManager.*
+import android.media.MediaScannerConnection
+import android.media.MediaScannerConnection.OnScanCompletedListener
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.*
+import android.provider.MediaStore
 import android.text.Html
 import android.util.Log
 import android.widget.Toast
@@ -35,6 +35,7 @@ import ru.topradio.ui.MainActivity
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,6 +49,7 @@ class PlayerService: Service() {
     var alarm = Alarm()
     var stopped = false
     var bitrateIndex = 0
+    private lateinit var outputStream: OutputStream
     private lateinit var fileOutputStream: FileOutputStream
     val handler = Handler(Looper.getMainLooper())
     private val audioManager by lazy {getSystemService(Context.AUDIO_SERVICE) as AudioManager}
@@ -357,7 +359,6 @@ class PlayerService: Service() {
 
 
     private fun handlePlayerError() {
-        Log.v("DASD","player error: ${station.name}, bitrate $bitrateIndex")
         handler.removeCallbacksAndMessages(null)
         if (isInternetAvailable()) {
             bitrateIndex++
@@ -414,21 +415,60 @@ class PlayerService: Service() {
         station.isRecording = true
         startTimerRecord()
         Toast.makeText(this@PlayerService, R.string.start_record, Toast.LENGTH_SHORT).show()
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val urlPath = URL(station.bitrates[bitrateIndex].url)
-                val folder = File(Environment.getExternalStorageDirectory(), "TopRadio")
-                val fileAudio = File(folder, "${station.name}_${Calendar.getInstance().timeInMillis}.mp3")
-                if (!folder.exists()) folder.mkdirs()
-                val inputStream = urlPath.openStream()
-                fileOutputStream = FileOutputStream(fileAudio)
-                var c: Int
-                while (inputStream.read().also { c = it } != -1) {
-                    fileOutputStream.write(c)
-                    c++
-                }
-            } catch (e:Exception) {e.printStackTrace()}
+
+        val urlPath = URL(station.bitrates[bitrateIndex].url)
+        val fileName = "${station.name}_${Calendar.getInstance().timeInMillis}.mp3"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val folder = Environment.DIRECTORY_MUSIC + File.separator + "TopRadio"
+            val contentValues  = ContentValues().apply {
+                put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
+                put(MediaStore.Audio.Media.RELATIVE_PATH, folder)
+            }
+            val resolver = contentResolver
+            val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val inputStream = urlPath.openStream()
+                    outputStream = resolver.openOutputStream(uri!!)!!
+                    var c: Int
+                    while (inputStream.read().also { c = it } != -1) {
+                        outputStream.write(c)
+                        c++
+                    }
+                } catch (e:Exception) {e.printStackTrace()}
+            }
+        } else {
+            val folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+                .toString() + File.separator + "TopRadio"
+            val fFolder = File(folder)
+            if (!fFolder.exists()) fFolder.mkdirs()
+            val file = File(folder, fileName)
+
+            val contentValues  = ContentValues().apply {
+                put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
+                put(MediaStore.Audio.Media.DATA, file.absolutePath)
+            }
+
+            contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                contentValues)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val inputStream = urlPath.openStream()
+                    fileOutputStream = FileOutputStream(file)
+                    var c: Int
+                    while (inputStream.read().also { c = it } != -1) {
+                        fileOutputStream.write(c)
+                        c++
+                    }
+                } catch (e:Exception) {e.printStackTrace()}
+            }
         }
+
     }
 
     private fun startTimerRecord(){
@@ -452,7 +492,9 @@ class PlayerService: Service() {
         handler.removeCallbacksAndMessages(null)
         station.isRecording = false
         try {
-            fileOutputStream.close()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                outputStream.close()
+            else fileOutputStream.close()
         } catch (e:java.lang.Exception){e.printStackTrace()}
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
@@ -39,21 +40,23 @@
                     <ImageView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:src="@drawable/ic_down_arrow"
+                        app:srcCompat="@drawable/ic_down_arrow"
                         android:padding="8dp"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
-                        android:layout_marginStart="20dp"/>
+                        android:layout_marginStart="20dp"
+                        tools:ignore="ContentDescription" />
                     <ImageView
                         android:id="@+id/favoritePlayerExpanded"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@drawable/ic_favorite_off_station"
+                        app:srcCompat="@drawable/ic_favorite_off_station"
                         setFavorite="@{viewModel.stationPager.favorite}"
                         android:padding="2dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
-                        android:layout_marginEnd="18dp"/>
+                        android:layout_marginEnd="18dp"
+                        tools:ignore="ContentDescription" />
                 </RelativeLayout>
 
                 <androidx.viewpager2.widget.ViewPager2
@@ -86,7 +89,7 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_record_off"
+                            app:srcCompat="@drawable/ic_record_off"
                             setRecordingIconExtended="@{viewModel.playerRecording}" />
                     </com.google.android.material.card.MaterialCardView>
 
@@ -116,8 +119,9 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_play_extended"
-                            setPlayingIconExtended="@{viewModel.stationPager.isPlaying}" />
+                            app:srcCompat="@drawable/ic_play_extended"
+                            setPlayingIconExtended="@{viewModel.stationPager.isPlaying}"
+                            tools:ignore="ContentDescription" />
                     </com.google.android.material.card.MaterialCardView>
                     <ProgressBar
                         android:id="@+id/progressPlayerExtended"
@@ -151,7 +155,8 @@
                         <ImageView
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:src="@drawable/ic_playlist" />
+                            app:srcCompat="@drawable/ic_playlist"
+                            tools:ignore="ContentDescription" />
                     </com.google.android.material.card.MaterialCardView>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
@@ -173,7 +178,7 @@
                     android:layout_marginTop="15dp"
                     android:layout_marginBottom="17dp"
                     android:layout_marginStart="25dp"
-                    android:elevation="10dp"
+                    app:cardElevation="10dp"
                     android:background="@color/back_main_container"
                     app:cardCornerRadius="8dp"
                     android:id="@+id/iconCard">
@@ -181,7 +186,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        setIcon="@{viewModel.station.icon}"/>
+                        setIcon="@{viewModel.station.icon}"
+                        tools:ignore="ContentDescription" />
                 </androidx.cardview.widget.CardView>
 
                 <LinearLayout
@@ -226,13 +232,14 @@
                     android:id="@+id/favoritePlayer"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:src="@drawable/ic_favorite_off_player"
+                    app:srcCompat="@drawable/ic_favorite_off_player"
                     app:layout_constraintTop_toTopOf="@id/playPause"
                     app:layout_constraintBottom_toBottomOf="@id/playPause"
                     app:layout_constraintEnd_toStartOf="@id/playPause"
                     android:padding="2dp"
                     android:layout_marginEnd="11dp"
-                    setFavorite="@{viewModel.station.favorite}"/>
+                    setFavorite="@{viewModel.station.favorite}"
+                    tools:ignore="ContentDescription" />
 
                 <ProgressBar
                     android:id="@+id/progressPlayer"
@@ -252,7 +259,7 @@
                     android:id="@+id/playPause"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:src="@drawable/ic_play"
+                    app:srcCompat="@drawable/ic_play"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintDimensionRatio="1:1"
@@ -260,7 +267,8 @@
                     setPlayingIcon="@{viewModel.station.isPlaying}"
                     android:layout_marginEnd="16dp"
                     android:layout_marginTop="16dp"
-                    android:layout_marginBottom="17dp"/>
+                    android:layout_marginBottom="17dp"
+                    tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <View

@@ -1,8 +1,12 @@
 package ru.topradio.ui
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
 import android.view.*
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
@@ -13,6 +17,8 @@ import ru.topradio.model.Record
 import ru.topradio.ui.adapters.RecordsListAdapter
 import ru.topradio.util.AppData
 import java.io.File
+import java.util.*
+import kotlin.collections.ArrayList
 
 class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
 
@@ -32,37 +38,52 @@ class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
 
         setHasOptionsMenu(true)
 
-        val path = Environment.getExternalStorageDirectory().path + "/TopRadio"
+        val path = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            Environment.DIRECTORY_MUSIC + File.separator + "TopRadio"
+        else Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            .toString() + File.separator + "TopRadio"
+
         binding.recordsInfo.text = path
 
-        val folder = File(Environment.getExternalStorageDirectory(), "TopRadio")
-        folder.exists().let {
-            if (it){
-                val records = ArrayList<Record>()
-                folder.listFiles()?.forEach { file ->
-                    var icon = ""
-                    AppData.stations.forEach { station ->
-                        if (station.name==file.name.substringBeforeLast("_"))
-                            icon = station.icon
-                    }
-                    val record = Record().apply {
-                        id = records.size
-                        name = file.name
-                        logo = icon
-                        date = (file.name.substringAfterLast("_").substringBefore(".")).toLong()
-                    }
-                    records.add(record)
+        val selection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            "${MediaStore.Audio.Media.RELATIVE_PATH} like ? "
+        else MediaStore.Audio.Media.DATA + " like ? "
+
+        val selectionArgs = arrayOf("${path}%")
+        val records = ArrayList<Record>()
+
+        requireActivity().contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            null,
+            selection,
+            selectionArgs,
+            null
+        )?.use {
+            while (it.moveToNext()) {
+                var icon = ""
+                val fileNameIndex = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+                AppData.stations.forEach { station ->
+                    if (station.name==it.getString(fileNameIndex).substringBeforeLast("_"))
+                        icon = station.icon
                 }
-                records.sortByDescending {record -> record.date }
-                binding.adapter!!.submitList(records)
+                val record = Record().apply {
+                    id = records.size
+                    name = it.getString(fileNameIndex)
+                    logo = icon
+                    date = (it.getString(fileNameIndex).substringAfterLast("_")
+                        .substringBefore(".")).toLong()
+                    uri = Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    it.getInt(it.getColumnIndex(MediaStore.MediaColumns._ID)).toString())
+                }
+                records.add(record)
             }
+            records.sortByDescending {record -> record.date }
+            binding.adapter!!.submitList(records)
         }
+
     }
 
-    private fun openFile(file: String){
-        val uri = FileProvider.getUriForFile(requireContext(),
-            requireContext().applicationContext.packageName + ".provider",
-            File(Environment.getExternalStorageDirectory(), "/TopRadio/$file"))
+    private fun openFile(uri: Uri){
         val intent = Intent(Intent.ACTION_VIEW)
         intent.setDataAndType(uri, "audio/*")
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -71,7 +92,7 @@ class RecordsFragment: Fragment(), RecordsListAdapter.OnClickListener {
     }
 
     override fun onRecordClick(record: Record) {
-        openFile(record.name)
+        openFile(record.uri!!)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

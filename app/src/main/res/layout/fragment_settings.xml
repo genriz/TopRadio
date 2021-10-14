@@ -24,7 +24,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_autoplay"
+                    app:srcCompat="@drawable/ic_setting_autoplay"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -72,7 +72,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_headphone"
+                    app:srcCompat="@drawable/ic_setting_headphone"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -120,7 +120,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_reconnect"
+                    app:srcCompat="@drawable/ic_setting_reconnect"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -169,7 +169,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_timer"
+                    app:srcCompat="@drawable/ic_setting_timer"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -208,7 +208,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/ic_arrow_right2"
+                    app:srcCompat="@drawable/ic_arrow_right2"
                     tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
             <View
@@ -227,7 +227,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_buffer"
+                    app:srcCompat="@drawable/ic_setting_buffer"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -265,7 +265,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/ic_arrow_right2"
+                    app:srcCompat="@drawable/ic_arrow_right2"
                     tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
             <View
@@ -283,7 +283,7 @@
                     android:layout_width="0dp"
                     app:layout_constraintWidth_percent="0.07"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/ic_setting_theme"
+                    app:srcCompat="@drawable/ic_setting_theme"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -371,7 +371,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/ic_arrow_right2"
+                    app:srcCompat="@drawable/ic_arrow_right2"
                     tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
             <View
