@@ -57,6 +57,7 @@ class MainViewModel: ViewModel() {
     private val viewedStations = ArrayList<Station>()
     val state = MutableLiveData<State>().apply { value = State.STATE_OK }
     val showAds = MutableLiveData<Boolean>().apply { value = false }
+    val loadAds = MutableLiveData<Boolean>().apply { value = false }
 
     fun getAllStations(){
         AppData.stations.forEach { station ->

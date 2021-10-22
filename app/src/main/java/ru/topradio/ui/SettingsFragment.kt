@@ -71,7 +71,7 @@ class SettingsFragment: Fragment(), DialogSeekbar.OnSeekBarChange,
                     binding.viewModel!!.timerValue.value!!)
                 if (binding.viewModel!!.timerValue.value!!>0) {
                     if ((activity as MainActivity).viewModel.station.value!!.name != "") {
-                        (activity as MainActivity).service.setTimerOff()
+                        (activity as MainActivity).service?.setTimerOff()
                     }
                 }
             }

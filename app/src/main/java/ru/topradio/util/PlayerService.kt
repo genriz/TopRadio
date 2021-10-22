@@ -88,48 +88,51 @@ class PlayerService: Service() {
     }
 
     private fun setStations(){
-        if (fromAlarm){
-            AppData.stationsPlayer.clear()
-            AppData.stationsPlayer.add(station)
-            player.clearMediaItems()
-            player.setMediaItem(MediaItem.Builder()
-                .setUri(Uri.parse(station.bitrates[0].url))
-                .build())
-            player.prepare()
-            handler.postDelayed({
-                if (player.playbackState!=ExoPlayer.STATE_READY){
-                    handler.removeCallbacksAndMessages(null)
-                    exitService()
-                }
-            }, 5000)
-
-        } else {
-            if (AppData.stationsPlayer.size>0){
-                val items = ArrayList<MediaItem>()
-                AppData.stationsPlayer.forEach {
-                    var bitrate = 0
-                    it.bitrates.forEach { br->
-                        if (br.isSelected) bitrate = it.bitrates.indexOf(br)
-                    }
-                    items.add(
-                        MediaItem.Builder()
-                            .setUri(Uri.parse(it.bitrates[bitrate].url))
-                            .build()
-                    )
-                }
+        if (AppData.stationsPlayer.contains(station)) {
+            if (fromAlarm) {
+                AppData.stationsPlayer.clear()
+                AppData.stationsPlayer.add(station)
                 player.clearMediaItems()
-                player.setMediaItems(items)
-                player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+                player.setMediaItem(
+                    MediaItem.Builder()
+                        .setUri(Uri.parse(station.bitrates[0].url))
+                        .build()
+                )
                 player.prepare()
                 handler.postDelayed({
                     if (player.playbackState != ExoPlayer.STATE_READY) {
-                        handlePlayerError()
+                        handler.removeCallbacksAndMessages(null)
+                        exitService()
                     }
                 }, 5000)
-            }
-        }
 
-        setPlayer()
+            } else {
+                if (AppData.stationsPlayer.size > 0) {
+                    val items = ArrayList<MediaItem>()
+                    AppData.stationsPlayer.forEach {
+                        var bitrate = 0
+                        it.bitrates.forEach { br ->
+                            if (br.isSelected) bitrate = it.bitrates.indexOf(br)
+                        }
+                        items.add(
+                            MediaItem.Builder()
+                                .setUri(Uri.parse(it.bitrates[bitrate].url))
+                                .build()
+                        )
+                    }
+                    player.clearMediaItems()
+                    player.setMediaItems(items)
+                    player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+                    player.prepare()
+                    handler.postDelayed({
+                        if (player.playbackState != ExoPlayer.STATE_READY) {
+                            handlePlayerError()
+                        }
+                    }, 5000)
+                }
+            }
+            setPlayer()
+        }
     }
 
     fun changeStation(station: Station, position: Int) {
@@ -141,6 +144,11 @@ class PlayerService: Service() {
             }
         }
         player.seekTo(position, C.TIME_UNSET)
+        handler.postDelayed({
+            if (player.playbackState != ExoPlayer.STATE_READY) {
+                handlePlayerError()
+            }
+        }, 5000)
         if (!player.isPlaying) player.play()
     }
 
@@ -183,9 +191,11 @@ class PlayerService: Service() {
                     }
                 } else {
                     handler.removeCallbacksAndMessages(null)
-                    station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
-                    if (bitrateIndex>=station.bitrates.size) bitrateIndex = 0
-                    station.bitrates[bitrateIndex].isSelected = true
+                    if (station.bitrates.size>0&&bitrateIndex>-1) {
+                        station.bitrates.forEach { bitrate -> bitrate.isSelected = false }
+                        if (bitrateIndex >= station.bitrates.size) bitrateIndex = 0
+                        station.bitrates[bitrateIndex].isSelected = true
+                    }
                     stopped = false
                     player.setHandleAudioBecomingNoisy(
                         AppData
@@ -201,7 +211,7 @@ class PlayerService: Service() {
 
             override fun onEvents(player: Player, events: Player.Events) {
                 super.onEvents(player, events)
-                if (!fromAlarm&&AppData.stations.size>0)
+                if (!fromAlarm&&AppData.stationsPlayer.size>0)
                 station =
 //                    if (events[events.size()-1]==4) Station()
 //                    else
@@ -387,8 +397,7 @@ class PlayerService: Service() {
                         .sendBroadcast(Intent("no_internet"))
                     LocalBroadcastManager.getInstance(this@PlayerService)
                         .sendBroadcast(Intent("player_stop_record"))
-                }
-                exitService()
+                } else exitService()
             }
         }
     }
@@ -438,7 +447,10 @@ class PlayerService: Service() {
                         outputStream.write(c)
                         c++
                     }
-                } catch (e:Exception) {e.printStackTrace()}
+                } catch (e:Exception) {
+                    e.printStackTrace()
+                    //stopRecord()
+                }
             }
         } else {
             val folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
@@ -465,7 +477,10 @@ class PlayerService: Service() {
                         fileOutputStream.write(c)
                         c++
                     }
-                } catch (e:Exception) {e.printStackTrace()}
+                } catch (e:Exception) {
+                    e.printStackTrace()
+                    //stopRecord()
+                }
             }
         }
 

@@ -9,10 +9,10 @@ import android.content.ClipData
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.*
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
@@ -27,6 +27,7 @@ import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
 import ru.topradio.R
 import ru.topradio.databinding.ActivityMainBinding
 import ru.topradio.model.MainViewModel
@@ -41,9 +42,6 @@ import ru.topradio.util.PlayerService
 import com.google.android.exoplayer2.*
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
 import ru.topradio.ui.dialogs.DialogStationOff
 import java.lang.Exception
@@ -56,10 +54,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    lateinit var service: PlayerService
+    var service: PlayerService? = null
     lateinit var player: SimpleExoPlayer
     private val playerStationsAdapter by lazy {PlayerPagerAdapter(this, this,
-        viewModel.showAds,this)}
+        viewModel.showAds, viewModel.loadAds,this)}
     private var selectedBitrate = 0
     private var stationBitrate = 0
     private val dialogMenu by lazy { DialogMenu(this, this) }
@@ -94,67 +92,74 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
 
     private val playerStateChangedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "player_state_changed") {
-                viewModel.station.value = viewModel.getStationById(service.station, AppData.stations)
-                viewModel.station.value!!.isPlaying =
-                    intent.getBooleanExtra("isPlaying", false)
-                viewModel.station.value!!.bitrates = service.station.bitrates
-                service.station.bitrates.forEach {
-                    if (it.isSelected) stationBitrate = service.station.bitrates.indexOf(it)
-                }
-                if (!viewModel.station.value!!.isPlaying){
-                    if (player.playbackState==ExoPlayer.STATE_BUFFERING){
-                        viewModel.playerWaiting.value =
-                            viewModel.station.value!!.id==viewModel.stationPager.value!!.id
+            if (service!=null) {
+                if (intent?.action == "player_state_changed") {
+                    viewModel.station.value =
+                        viewModel.getStationById(service!!.station, AppData.stations)
+                    viewModel.station.value!!.isPlaying =
+                        intent.getBooleanExtra("isPlaying", false)
+                    viewModel.station.value!!.bitrates = service!!.station.bitrates
+                    service!!.station.bitrates.forEach {
+                        if (it.isSelected) stationBitrate = service!!.station.bitrates.indexOf(it)
+                    }
+                    if (!viewModel.station.value!!.isPlaying) {
+                        if (player.playbackState == ExoPlayer.STATE_BUFFERING) {
+                            viewModel.playerWaiting.value =
+                                viewModel.station.value!!.id == viewModel.stationPager.value!!.id
+                        } else {
+                            if (viewModel.stationPager.value!!.id == viewModel.station.value!!.id)
+                                viewModel.stationPager.value = viewModel.station.value
+                            viewModel.playerWaiting.value = false
+                        }
+                        if (intent.getBooleanExtra("isError", false)) {
+                            showStationOffDialog()
+                            viewModel.playerWaiting.value = false
+                        }
                     } else {
-                        if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
+                        if (viewModel.stationPager.value!!.id == viewModel.station.value!!.id) {
                             viewModel.stationPager.value = viewModel.station.value
-                        viewModel.playerWaiting.value = false
-                    }
-                    if (intent.getBooleanExtra("isError", false)){
-                        showStationOffDialog()
-                        viewModel.playerWaiting.value = false
-                    }
-                } else {
-                    if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id) {
-                        viewModel.stationPager.value = viewModel.station.value
-                    }
+                        }
 
-                    if (BottomSheetBehavior.from(binding.playerView.root).state ==
-                            BottomSheetBehavior.STATE_HIDDEN){
-                        viewModel.stationPager.value = viewModel.station.value
-                        showPlayer(AppData.stationsPlayer)
-                    } else {
-                        viewModel.playerWaiting.value = false
+                        if (BottomSheetBehavior.from(binding.playerView.root).state ==
+                            BottomSheetBehavior.STATE_HIDDEN
+                        ) {
+                            viewModel.stationPager.value = viewModel.station.value
+                            showPlayer(AppData.stationsPlayer)
+                        } else {
+                            viewModel.playerWaiting.value = false
+                        }
+
+                        val position = viewModel.getStationPosition(
+                            viewModel.station.value!!,
+                            AppData.stationsPlayer)
+                        playerStationsAdapter.notifyItemChanged(position)
                     }
-                    val position = viewModel.getStationPosition(viewModel.station.value!!,
-                        AppData.stationsPlayer)
-                    playerStationsAdapter.notifyItemChanged(position)
                 }
-            }
-            if (intent?.action == "player_track_name") {
-                viewModel.station.value!!.track = intent.getStringExtra("track_name")?:""
-                viewModel.station.value = viewModel.station.value
-                if (viewModel.stationPager.value!!.id==viewModel.station.value!!.id)
-                    viewModel.stationPager.value = viewModel.station.value!!
-                playerStationsAdapter
-                    .notifyItemChanged(viewModel.getStationPosition(viewModel.station.value!!,
-                        AppData.stationsPlayer))
-            }
-            if (intent?.action == "player_close") {
-                BottomSheetBehavior.from(binding.playerView.root).isHideable = true
-                BottomSheetBehavior.from(binding.playerView.root).state =
-                    BottomSheetBehavior.STATE_HIDDEN
-                viewModel.playerWaiting.value = false
-            }
-            if (intent?.action == "player_stop_record") {
-                stopRecord()
-            }
-            if (intent?.action == "player_record_time") {
-                viewModel.recordTime.postValue(intent.getStringExtra("time")?:"")
-            }
-            if (intent?.action == "no_internet") {
-                showInternetDialog()
+                if (intent?.action == "player_track_name") {
+                    viewModel.station.value!!.track = intent.getStringExtra("track_name") ?: ""
+                    viewModel.station.value = viewModel.station.value
+                    if (viewModel.stationPager.value!!.id == viewModel.station.value!!.id)
+                        viewModel.stationPager.value = viewModel.station.value!!
+
+                    playerStationsAdapter.notifyItemChanged(
+                            viewModel.getStationPosition(viewModel.station.value!!,
+                                AppData.stationsPlayer))
+                }
+                if (intent?.action == "player_close") {
+                    BottomSheetBehavior.from(binding.playerView.root).isHideable = true
+                    BottomSheetBehavior.from(binding.playerView.root).state =
+                        BottomSheetBehavior.STATE_HIDDEN
+                    viewModel.playerWaiting.value = false
+                }
+                if (intent?.action == "player_stop_record") {
+                    stopRecord()
+                }
+                if (intent?.action == "player_record_time") {
+                    viewModel.recordTime.postValue(intent.getStringExtra("time") ?: "")
+                }
+                if (intent?.action == "no_internet") {
+                    showInternetDialog()
+                }
             }
         }
     }
@@ -282,12 +287,12 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
             if (it!=null&&it==State.STATE_FAILED) showInternetDialog()
         })
 
-        viewModel.showAds.observe(this,{
-            it?.let{ show->
+        viewModel.loadAds.observe(this,{
+            it?.let{ loadAds->
                 handlerAds.removeCallbacksAndMessages(null)
-                if (!show){
+                if (!loadAds){
                     handlerAds.postDelayed({
-                        viewModel.showAds.postValue(true)
+                        viewModel.loadAds.postValue(true)
                     },120000)
                 }
             }
@@ -304,65 +309,77 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
         binding.playerView.playerPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                if (position!=clickedPosition) {
-                    viewModel.stationPager.value = pagerStations[position]
-                    fromUser = true
-                    clickedPosition = -1
-                }
-                if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
-                    &&service.station.id!=viewModel.stationPager.value!!.id
-                    &&fromUser) {
+                if (service!=null) {
+                    if (position != clickedPosition) {
+                        viewModel.stationPager.value = pagerStations[position]
+                        fromUser = true
+                        clickedPosition = -1
+                    }
+                    if (AppData.getSettingBoolean(this@MainActivity, "autoplay")
+                        && service!!.station.id != viewModel.stationPager.value!!.id
+                        && fromUser
+                    ) {
                         viewModel.stationPager.value = pagerStations[position]
                         viewModel.playerWaiting.value = true
-                        service.changeStation(viewModel.stationPager.value!!, position)
-                } else {
-                    if (viewModel.stationPager.value!!.id!=service.station.id){
-                        viewModel.stationPager.value!!.isPlaying = false
-                        viewModel.stationPager.value = viewModel.stationPager.value
-                        viewModel.playerWaiting.value = false
+                        service!!.changeStation(viewModel.stationPager.value!!, position)
                     } else {
-                        viewModel.stationPager.value!!.isPlaying = service.station.isPlaying
-                        viewModel.stationPager.value = viewModel.stationPager.value
+                        if (viewModel.stationPager.value!!.id != service!!.station.id) {
+                            viewModel.stationPager.value!!.isPlaying = false
+                            viewModel.stationPager.value = viewModel.stationPager.value
+                            viewModel.playerWaiting.value = false
+                        } else {
+                            viewModel.stationPager.value!!.isPlaying = service!!.station.isPlaying
+                            viewModel.stationPager.value = viewModel.stationPager.value
+                        }
                     }
+                    viewModel.setViewedStation(
+                        this@MainActivity,
+                        pagerStations[position]
+                    )
                 }
-                viewModel.setViewedStation(this@MainActivity,
-                    pagerStations[position])
-//                playerStationsAdapter
-//                    .notifyItemChanged(position)
             }
         })
         binding.playerView.playPause.setOnClickListener {
-            if (service.station.id==viewModel.station.value!!.id){
-                if (viewModel.station.value!!.isPlaying)
-                    player.pause()
-                else {
+            if (service!=null) {
+                if (service!!.station.id == viewModel.station.value!!.id) {
+                    if (viewModel.station.value!!.isPlaying)
+                        player.pause()
+                    else {
+                        viewModel.playerWaiting.value = true
+                        player.prepare()
+                        player.play()
+                    }
+                } else {
                     viewModel.playerWaiting.value = true
-                    player.prepare()
-                    player.play()
+                    playStation(viewModel.station.value!!)
                 }
-            } else {
-                viewModel.playerWaiting.value = true
-                playStation(viewModel.station.value!!)
             }
         }
         binding.playerView.playPauseExtended.setOnClickListener {
-            if (service.station.id == viewModel.stationPager.value!!.id) {
-                if (viewModel.stationPager.value!!.isPlaying)
-                    player.pause()
-                else {
+            if (service!=null) {
+                if (service!!.station.id == viewModel.stationPager.value!!.id) {
+                    if (viewModel.stationPager.value!!.isPlaying)
+                        player.pause()
+                    else {
+                        viewModel.playerWaiting.value = true
+                        player.prepare()
+                        player.play()
+                    }
+                } else if (fromUser && AppData.arraysEqualsContent(
+                        AppData.stationsPlayer,
+                        ArrayList(pagerStations)
+                    )
+                ) {
                     viewModel.playerWaiting.value = true
-                    player.prepare()
-                    player.play()
+                    val position = viewModel.getStationPosition(
+                        viewModel.stationPager.value!!,
+                        AppData.stationsPlayer
+                    )
+                    service!!.changeStation(viewModel.stationPager.value!!, position)
+                } else {
+                    viewModel.playerWaiting.value = true
+                    playStation(viewModel.stationPager.value!!)
                 }
-            } else if (fromUser&&AppData.arraysEqualsContent(AppData.stationsPlayer,
-                    ArrayList(pagerStations))) {
-                viewModel.playerWaiting.value = true
-                val position = viewModel.getStationPosition(viewModel.stationPager.value!!,
-                    AppData.stationsPlayer)
-                service.changeStation(viewModel.stationPager.value!!, position)
-            } else {
-                viewModel.playerWaiting.value = true
-                playStation(viewModel.stationPager.value!!)
             }
         }
         binding.playerView.favoritePlayer.setOnClickListener {
@@ -377,9 +394,6 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
             viewModel.updateItemPosition.value = viewModel
                 .getStationPosition(viewModel.stationPager.value!!,viewModel.stations.value!!)
             viewModel.updateStationFavorite(this, viewModel.stationPager.value!!)
-            //TODO
-//            playerStationsAdapter.notifyItemChanged(viewModel
-//                .getStationPosition(viewModel.stationPager.value!!,viewModel.stations.value!!))
         }
         binding.playerView.recordExtended.setOnClickListener {
             if (player.isPlaying) {
@@ -406,18 +420,18 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
             .addBottomSheetCallback(object:BottomSheetBehavior.BottomSheetCallback(){
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     if (newState == BottomSheetBehavior.STATE_COLLAPSED){
-                        if (service.station.name==""){
+                        if (service!=null&&service!!.station.name==""){
                             BottomSheetBehavior.from(binding.playerView.root).isHideable = true
                             BottomSheetBehavior.from(binding.playerView.root).state =
                                 BottomSheetBehavior.STATE_HIDDEN
                         } else {
+                            pagerStations.clear()
+                            pagerStations.addAll(AppData.stationsPlayer)
                             playerStationsAdapter.submitList(AppData.stationsPlayer){
                                 val position = viewModel.getStationPosition(viewModel.station.value!!,
                                     AppData.stationsPlayer)
                                 binding.playerView.playerPager
                                     .setCurrentItem(position, false)
-                                //TODO
-//                                playerStationsAdapter.notifyItemChanged(position)
                             }
                             BottomSheetBehavior.from(binding.playerView.root).isHideable = false
                         }
@@ -429,13 +443,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
                         binding.playerView.playerMini.visibility = View.GONE
                         hideKeyboard()
                         if (AppData.getSettingBoolean(this@MainActivity,"autoplay")
-                                    &&service.station.id!=viewModel.stationPager.value!!.id) {
+                            &&service!=null&&service!!.station.id!=viewModel.stationPager.value!!.id) {
                             viewModel.playerWaiting.value = true
                             playStation(viewModel.stationPager.value!!)
                         }
-
-                        Log.v("DASD","$fromService, ${viewModel.stationPager.value!!.isPlaying}")
-
                     } else
                     if (newState == BottomSheetBehavior.STATE_DRAGGING){
                         if (!binding.playerView.playerExpanded.isVisible) {
@@ -477,7 +488,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
                 playerStationsAdapter.notifyItemChanged(clickedPosition)
             }
         }
-        viewModel.showAds.value = true
+        viewModel.loadAds.postValue(true)
     }
 
     private fun playStation(station: Station){
@@ -528,7 +539,8 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
                 Manifest.permission.READ_EXTERNAL_STORAGE)){
             EasyPermissions.requestPermissions(
                 this,
-                "Top Radio needs permission.\nPress OK to continue.",
+                "${getString(R.string.app_name)} needs permission.\n" +
+                        "Press OK to continue.",
                 282,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -539,15 +551,17 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
 
     private fun recordAudio() {
         viewModel.playerRecording.postValue(true)
-        service.recordAudio()
+        service?.recordAudio()
     }
 
     private fun stopRecord(){
         if (viewModel.playerRecording.value!!){
             viewModel.playerRecording.postValue(false)
             viewModel.recordTime.postValue("")
-            service.stopRecord()
-            DialogRecord(this,this).show()
+            service?.stopRecord()
+            if (!isDestroyed) {
+                DialogRecord(this,this).show()
+            }
         }
     }
 
@@ -565,7 +579,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        recordAudio()
+        if (requestCode==282) recordAudio()
     }
 
     override fun onResume() {
@@ -606,19 +620,21 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     }
 
     override fun onBitrateClick(position: Int) {
-        selectedBitrate = position
-        if (viewModel.stationPager.value!!.isPlaying) {
-            service.setBitrate(position)
-            viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
-        } else {
-            val positionPager = playerStationsAdapter.currentList
-                .indexOf(viewModel.stationPager.value!!)
-            viewModel.stationPager.value!!.bitrates.forEach {
-                it.isSelected = false
+        if (service!=null) {
+            selectedBitrate = position
+            if (viewModel.stationPager.value!!.isPlaying) {
+                service!!.setBitrate(position)
+                viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
+            } else {
+                val positionPager = playerStationsAdapter.currentList
+                    .indexOf(viewModel.stationPager.value!!)
+                viewModel.stationPager.value!!.bitrates.forEach {
+                    it.isSelected = false
+                }
+                viewModel.stationPager.value!!.bitrates[position].isSelected = true
+                playerStationsAdapter
+                    .notifyItemChanged(positionPager)
             }
-            viewModel.stationPager.value!!.bitrates[position].isSelected = true
-            playerStationsAdapter
-                .notifyItemChanged(positionPager)
         }
     }
 
@@ -630,9 +646,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
         dialogMenu.show()
     }
 
+    @UiThread
     private fun showInternetDialog(){
-        CoroutineScope(Dispatchers.Main).launch {
-            val dialog = DialogInternet(this@MainActivity)
+        if (!isDestroyed) {
+            val dialog = DialogInternet(this)
             dialog.setOnDismissListener {
                 hideKeyboard()
             }
@@ -640,9 +657,10 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
         }
     }
 
+    @UiThread
     private fun showStationOffDialog(){
-        CoroutineScope(Dispatchers.Main).launch {
-            val dialog = DialogStationOff(this@MainActivity)
+        if (!isDestroyed) {
+            val dialog = DialogStationOff(this)
             dialog.setOnDismissListener {
                 hideKeyboard()
             }
@@ -657,7 +675,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
             2 -> openFeedback()
             3 -> navController.navigate(R.id.menu_settings)
             4 -> {
-                service.exitService()
+                service?.exitService()
                 finish()
             }
         }
@@ -682,6 +700,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
         else
             AppData.setSettingBoolean(this,"show_favorites",false)
         handlerAds.removeCallbacksAndMessages(null)
+        if (!isDestroyed) Glide.with(this).pauseAllRequests()
         super.onDestroy()
     }
 

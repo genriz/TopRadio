@@ -2,7 +2,6 @@ package ru.topradio.ui.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +17,7 @@ import com.google.android.gms.ads.*
 
 class PlayerPagerAdapter(private val context: Context, private val listener: OnClick,
                          private val showAds: MutableLiveData<Boolean>,
+                         private val loadAds: MutableLiveData<Boolean>,
                          private val lifecycleOwner: LifecycleOwner)
     : ListAdapter<Station, PlayerPagerAdapter.StationViewHolder>(StationItemDiffCallback()),
     BitratesListAdapter.OnClickListener {
@@ -29,6 +29,50 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StationViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = PlayerPagerItemBinding.inflate(layoutInflater,parent,false)
+
+        binding.adsView.adListener = object: AdListener() {
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
+//                holder.binding.adsView.loadAd(AdRequest.Builder().build())
+            }
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                if (loadAds.value!!) {
+                    binding.iconCardExpanded.visibility = View.INVISIBLE
+                    binding.adsBannerContainer.visibility = View.VISIBLE
+                }
+//                showAds.postValue(false)
+            }
+            override fun onAdClosed() {
+                super.onAdClosed()
+                loadAds.postValue(false)
+                binding.iconCardExpanded.visibility = View.VISIBLE
+                binding.adsBannerContainer.visibility = View.GONE
+            }
+            override fun onAdClicked() {
+                super.onAdClicked()
+                loadAds.postValue(false)
+                binding.iconCardExpanded.visibility = View.VISIBLE
+                binding.adsBannerContainer.visibility = View.GONE
+            }
+            override fun onAdOpened() {
+                super.onAdOpened()
+                loadAds.postValue(false)
+                binding.iconCardExpanded.visibility = View.VISIBLE
+                binding.adsBannerContainer.visibility = View.GONE
+            }
+        }
+
+        loadAds.observe(lifecycleOwner,{
+            it?.let{ loadAd ->
+                if (loadAd) {
+                    binding.adsView.loadAd(AdRequest.Builder().build())
+                } else {
+                    binding.iconCardExpanded.visibility = View.VISIBLE
+                    binding.adsBannerContainer.visibility = View.GONE
+                }
+            }
+        })
         return StationViewHolder(binding)
     }
 
@@ -54,54 +98,11 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
 
         holder.binding.executePendingBindings()
 
-
-        holder.binding.adsBannerContainer.visibility = View.GONE
-        holder.binding.iconCardExpanded.visibility = View.VISIBLE
-
-        holder.binding.adsView.adListener = object: AdListener() {
-            override fun onAdFailedToLoad(p0: LoadAdError) {
-                super.onAdFailedToLoad(p0)
-//                holder.binding.adsView.loadAd(AdRequest.Builder().build())
-            }
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                holder.binding.iconCardExpanded.visibility = View.INVISIBLE
-                holder.binding.adsBannerContainer.visibility = View.VISIBLE
-//                showAds.postValue(false)
-            }
-            override fun onAdClosed() {
-                super.onAdClosed()
-                holder.binding.iconCardExpanded.visibility = View.VISIBLE
-                holder.binding.adsBannerContainer.visibility = View.GONE
-            }
-            override fun onAdClicked() {
-                super.onAdClicked()
-                holder.binding.iconCardExpanded.visibility = View.VISIBLE
-                holder.binding.adsBannerContainer.visibility = View.GONE
-            }
-            override fun onAdOpened() {
-                super.onAdOpened()
-                holder.binding.iconCardExpanded.visibility = View.VISIBLE
-                holder.binding.adsBannerContainer.visibility = View.GONE
-            }
-        }
-
-        showAds.observe(lifecycleOwner,{
-            it?.let{ show ->
-                if (show) holder.binding.adsView.loadAd(AdRequest.Builder().build())
-                else {
-                    holder.binding.iconCardExpanded.visibility = View.VISIBLE
-                    holder.binding.adsBannerContainer.visibility = View.GONE
-                }
-            }
-        })
-
         holder.binding.adsClose.setOnClickListener {
             holder.binding.iconCardExpanded.visibility = View.VISIBLE
             holder.binding.adsBannerContainer.visibility = View.GONE
-            showAds.postValue(false)
+            loadAds.postValue(false)
         }
-
     }
 
     override fun onBitrateClick(position: Int) {
@@ -112,7 +113,7 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         override fun areItemsTheSame(oldItem: Station, newItem: Station):
                 Boolean = oldItem.id == newItem.id
         override fun areContentsTheSame(oldItem: Station, newItem: Station):
-                Boolean = oldItem == newItem
+                Boolean = oldItem.track == newItem.track
     }
 
     class StationViewHolder(val binding: PlayerPagerItemBinding) :
