@@ -127,14 +127,15 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
                     return true
                 }
                 override fun onQueryTextChange(newText: String): Boolean {
-                    if (newText.length>2)
-                        (activity as MainActivity).viewModel.searchStations(newText)
-                    else
-                        if (newText.isEmpty()) {
-                            (activity as MainActivity).viewModel.clearSearchStations()
-                            (activity as MainActivity).scrollToFirst = false
-                            //binding.stationsList.scrollToPosition(0)
-                        }
+                    activity?.apply {
+                        if (newText.length>2)
+                            (activity as MainActivity).viewModel.searchStations(newText)
+                        else
+                            if (newText.isEmpty()) {
+                                (activity as MainActivity).viewModel.clearSearchStations()
+                                (activity as MainActivity).scrollToFirst = false
+                            }
+                    }
                     return true
                 }
 

@@ -41,40 +41,51 @@ class SplashActivity : AppCompatActivity() {
                         station.bitrates[0].isSelected = true
                     }
                     job = CoroutineScope(Dispatchers.IO).launch {
-                        val response2 = ApiRadio().getApi().getGenres(AppData.auth)
-                        if (response2.isSuccessful && response2.body() != null) {
-                            AppData.genres.clear()
-                            AppData.genres.addAll(response2.body()!!)
-                            job = CoroutineScope(Dispatchers.IO).launch {
-                                val response3 = ApiRadio().getApi().getCities(AppData.auth)
-                                if (response3.isSuccessful && response3.body() != null) {
-                                    AppData.cities.clear()
-                                    AppData.cities.addAll(response3.body()!!)
-                                    AppData.getFavorites(this@SplashActivity)
-                                    startActivity(
-                                        Intent(
-                                            this@SplashActivity,
-                                            MainActivity::class.java
-                                        )
-                                    )
-                                    finish()
+                        try {
+                            val response2 = ApiRadio().getApi().getGenres(AppData.auth)
+                            if (response2.isSuccessful && response2.body() != null) {
+                                AppData.genres.clear()
+                                AppData.genres.addAll(response2.body()!!)
+                                job = CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val response3 = ApiRadio().getApi().getCities(AppData.auth)
+                                        if (response3.isSuccessful && response3.body() != null) {
+                                            AppData.cities.clear()
+                                            AppData.cities.addAll(response3.body()!!)
+                                            AppData.getFavorites(this@SplashActivity)
+                                            startActivity(
+                                                Intent(
+                                                    this@SplashActivity,
+                                                    MainActivity::class.java
+                                                )
+                                            )
+                                            finish()
+                                        } else handleException(SocketTimeoutException(""))
+                                    } catch (e: Exception){
+                                        handleException(e)
+                                    }
                                 }
-                            }
+                            } else handleException(SocketTimeoutException(""))
+                        } catch (e: Exception){
+                            handleException(e)
                         }
                     }
-                }
+                } else handleException(SocketTimeoutException(""))
             } catch (e: Exception){
-                Log.v("DASD", e.toString())
-                if (e is UnknownHostException || e is SocketTimeoutException) {
-                    job?.cancel()
-                    CoroutineScope(Dispatchers.Main).launch {
-                        DialogInternet(this@SplashActivity).apply {
-                            setOnDismissListener {
-                                getApiData()
-                            }
-                        }.show()
+                handleException(e)
+            }
+        }
+    }
+
+    private fun handleException(e:Exception){
+        if (e is UnknownHostException || e is SocketTimeoutException) {
+            job?.cancel()
+            CoroutineScope(Dispatchers.Main).launch {
+                DialogInternet(this@SplashActivity).apply {
+                    setOnDismissListener {
+                        getApiData()
                     }
-                }
+                }.show()
             }
         }
     }

@@ -421,65 +421,71 @@ class PlayerService: Service() {
     }
 
     fun recordAudio(){
-        station.isRecording = true
-        startTimerRecord()
-        Toast.makeText(this@PlayerService, R.string.start_record, Toast.LENGTH_SHORT).show()
+        if (station.bitrates.size>0) {
+            station.isRecording = true
+            startTimerRecord()
+            Toast.makeText(this@PlayerService, R.string.start_record, Toast.LENGTH_SHORT).show()
 
-        val urlPath = URL(station.bitrates[bitrateIndex].url)
-        val fileName = "${station.name}_${Calendar.getInstance().timeInMillis}.mp3"
+            val urlPath = URL(station.bitrates[bitrateIndex].url)
+            val fileName = "${station.name}_${Calendar.getInstance().timeInMillis}.mp3"
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val folder = Environment.DIRECTORY_MUSIC + File.separator + "TopRadio"
-            val contentValues  = ContentValues().apply {
-                put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
-                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
-                put(MediaStore.Audio.Media.RELATIVE_PATH, folder)
-            }
-            val resolver = contentResolver
-            val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val inputStream = urlPath.openStream()
-                    outputStream = resolver.openOutputStream(uri!!)!!
-                    var c: Int
-                    while (inputStream.read().also { c = it } != -1) {
-                        outputStream.write(c)
-                        c++
-                    }
-                } catch (e:Exception) {
-                    e.printStackTrace()
-                    //stopRecord()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val folder = Environment.DIRECTORY_MUSIC + File.separator + "TopRadio"
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
+                    put(MediaStore.Audio.Media.RELATIVE_PATH, folder)
                 }
-            }
-        } else {
-            val folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
-                .toString() + File.separator + "TopRadio"
-            val fFolder = File(folder)
-            if (!fFolder.exists()) fFolder.mkdirs()
-            val file = File(folder, fileName)
+                val resolver = contentResolver
+                val uri =
+                    resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
 
-            val contentValues  = ContentValues().apply {
-                put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
-                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
-                put(MediaStore.Audio.Media.DATA, file.absolutePath)
-            }
-
-            contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
-
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    val inputStream = urlPath.openStream()
-                    fileOutputStream = FileOutputStream(file)
-                    var c: Int
-                    while (inputStream.read().also { c = it } != -1) {
-                        fileOutputStream.write(c)
-                        c++
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val inputStream = urlPath.openStream()
+                        outputStream = resolver.openOutputStream(uri!!)!!
+                        var c: Int
+                        while (inputStream.read().also { c = it } != -1) {
+                            outputStream.write(c)
+                            c++
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        //stopRecord()
                     }
-                } catch (e:Exception) {
-                    e.printStackTrace()
-                    //stopRecord()
+                }
+            } else {
+                val folder =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+                        .toString() + File.separator + "TopRadio"
+                val fFolder = File(folder)
+                if (!fFolder.exists()) fFolder.mkdirs()
+                val file = File(folder, fileName)
+
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/mp3")
+                    put(MediaStore.Audio.Media.DATA, file.absolutePath)
+                }
+
+                contentResolver.insert(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    contentValues
+                )
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        val inputStream = urlPath.openStream()
+                        fileOutputStream = FileOutputStream(file)
+                        var c: Int
+                        while (inputStream.read().also { c = it } != -1) {
+                            fileOutputStream.write(c)
+                            c++
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        //stopRecord()
+                    }
                 }
             }
         }

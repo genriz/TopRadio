@@ -43,11 +43,13 @@ object AppData {
     }
 
     fun getStationById(id: Int): Station {
-        var position = 0
-        stations.forEach {
-            if (it.id == id) position = stations.indexOf(it)
-        }
-        return stations[position]
+        return if (stations.size>0) {
+            var position = 0
+            stations.forEach {
+                if (it.id == id) position = stations.indexOf(it)
+            }
+            stations[position]
+        } else Station()
     }
 
     fun getPositionById(id: Int): Int {
