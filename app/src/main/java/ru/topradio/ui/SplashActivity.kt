@@ -21,10 +21,12 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        if (AppData.getSettingBoolean(this,"theme"))
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        else
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        try {
+            if (AppData.getSettingBoolean(this, "theme"))
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            else
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        } catch (e:Exception){}
 
         getApiData()
 
@@ -36,9 +38,11 @@ class SplashActivity : AppCompatActivity() {
                 val response = ApiRadio().getApi().getRadios(AppData.auth)
                 if (response.isSuccessful && response.body() != null) {
                     AppData.stations.clear()
-                    AppData.stations.addAll(response.body()!!)
-                    AppData.stations.forEach { station ->
-                        station.bitrates[0].isSelected = true
+                    response.body()!!.forEach { station ->
+                        if (station.bitrates.size>0) {
+                            station.bitrates[0].isSelected = true
+                            AppData.stations.add(station)
+                        }
                     }
                     job = CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -60,33 +64,31 @@ class SplashActivity : AppCompatActivity() {
                                                 )
                                             )
                                             finish()
-                                        } else handleException(SocketTimeoutException(""))
+                                        } else handleException()
                                     } catch (e: Exception){
-                                        handleException(e)
+                                        handleException()
                                     }
                                 }
-                            } else handleException(SocketTimeoutException(""))
+                            } else handleException()
                         } catch (e: Exception){
-                            handleException(e)
+                            handleException()
                         }
                     }
-                } else handleException(SocketTimeoutException(""))
+                } else handleException()
             } catch (e: Exception){
-                handleException(e)
+                handleException()
             }
         }
     }
 
-    private fun handleException(e:Exception){
-        if (e is UnknownHostException || e is SocketTimeoutException) {
-            job?.cancel()
-            CoroutineScope(Dispatchers.Main).launch {
-                DialogInternet(this@SplashActivity).apply {
-                    setOnDismissListener {
-                        getApiData()
-                    }
-                }.show()
-            }
+    private fun handleException(){
+        job?.cancel()
+        CoroutineScope(Dispatchers.Main).launch {
+            DialogInternet(this@SplashActivity).apply {
+                setOnDismissListener {
+                    getApiData()
+                }
+            }.show()
         }
     }
 

@@ -13,8 +13,8 @@ android {
         applicationId "ru.topradio"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 39
-        versionName "39.0"
+        versionCode 41
+        versionName "41.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

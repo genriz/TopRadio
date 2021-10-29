@@ -77,6 +77,7 @@ class PlaylistActivity : AppCompatActivity(), PlayListAdapter.OnClick {
 
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             .format(Calendar.getInstance().timeInMillis)
+
         viewModel.getPlaylist(station.playList!!, date)
 
         viewModel.state.observe(this,{

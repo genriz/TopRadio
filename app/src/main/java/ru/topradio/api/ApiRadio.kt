@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 class ApiRadio {
     fun getApi(): ApiRadioInterface{
@@ -12,6 +13,11 @@ class ApiRadio {
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(interceptor)
+            .callTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
             .build()
         val retrofit = Retrofit.Builder()
             .baseUrl("https://playlists8.auto-messenger.ru/storage/api/application/")

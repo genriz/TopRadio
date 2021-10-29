@@ -94,6 +94,7 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
         override fun onReceive(context: Context?, intent: Intent?) {
             if (service!=null) {
                 if (intent?.action == "player_state_changed") {
+                    if (viewModel.playerRecording.value!!) stopRecord()
                     viewModel.station.value =
                         viewModel.getStationById(service!!.station, AppData.stations)
                     viewModel.station.value!!.isPlaying =
@@ -396,13 +397,13 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
             viewModel.updateStationFavorite(this, viewModel.stationPager.value!!)
         }
         binding.playerView.recordExtended.setOnClickListener {
-            if (player.isPlaying) {
+            if (viewModel.stationPager.value!!.isPlaying) {
                 if (!viewModel.playerRecording.value!!)
                     checkPermissions()
                 else {
                     stopRecord()
                 }
-            }
+            } else if (viewModel.playerRecording.value!!) stopRecord()
         }
         binding.playerView.playlistExtended.setOnClickListener {
             val bundle = Bundle()
@@ -620,22 +621,24 @@ class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks,
     }
 
     override fun onBitrateClick(position: Int) {
-        if (service!=null) {
-            selectedBitrate = position
-            if (viewModel.stationPager.value!!.isPlaying) {
-                service!!.setBitrate(position)
-                viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
-            } else {
-                val positionPager = playerStationsAdapter.currentList
-                    .indexOf(viewModel.stationPager.value!!)
-                viewModel.stationPager.value!!.bitrates.forEach {
-                    it.isSelected = false
+        try {
+            if (service != null) {
+                selectedBitrate = position
+                if (viewModel.stationPager.value!!.isPlaying) {
+                    service!!.setBitrate(position)
+                    viewModel.station.value!!.bitrates.forEach { it.isSelected = false }
+                } else {
+                    val positionPager = playerStationsAdapter.currentList
+                        .indexOf(viewModel.stationPager.value!!)
+                    viewModel.stationPager.value!!.bitrates.forEach {
+                        it.isSelected = false
+                    }
+                    viewModel.stationPager.value!!.bitrates[position].isSelected = true
+                    playerStationsAdapter
+                        .notifyItemChanged(positionPager)
                 }
-                viewModel.stationPager.value!!.bitrates[position].isSelected = true
-                playerStationsAdapter
-                    .notifyItemChanged(positionPager)
             }
-        }
+        } catch (e:Exception){}
     }
 
     override fun openFolder() {

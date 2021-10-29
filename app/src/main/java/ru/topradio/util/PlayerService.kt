@@ -128,7 +128,7 @@ class PlayerService: Service() {
                         if (player.playbackState != ExoPlayer.STATE_READY) {
                             handlePlayerError()
                         }
-                    }, 5000)
+                    }, 20000)
                 }
             }
             setPlayer()
@@ -148,7 +148,7 @@ class PlayerService: Service() {
             if (player.playbackState != ExoPlayer.STATE_READY) {
                 handlePlayerError()
             }
-        }, 5000)
+        }, 20000)
         if (!player.isPlaying) player.play()
     }
 
@@ -219,7 +219,11 @@ class PlayerService: Service() {
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                //handlePlayerError()
+                handler.postDelayed({
+                    if (player.playbackState != ExoPlayer.STATE_READY) {
+                        handlePlayerError()
+                    }
+                }, 5000)
             }
         })
         playerNotificationManager = PlayerNotificationManager.Builder(this,
@@ -520,20 +524,24 @@ class PlayerService: Service() {
     }
 
     fun setBitrate(index: Int){
-        bitrateIndex = index
-        val position = AppData.stationsPlayer.indexOf(station)
-        player.removeMediaItem(position)
-        player.addMediaItem(position,
-            MediaItem.Builder()
-                .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
-                .build())
-        player.seekTo(position,0)
-        player.prepare()
-        handler.postDelayed({
-            if (player.playbackState != ExoPlayer.STATE_READY) {
-                handlePlayerError()
-            }
-        }, 5000)
+        try {
+            bitrateIndex = index
+            val position = AppData.stationsPlayer.indexOf(station)
+            player.removeMediaItem(position)
+            player.addMediaItem(
+                position,
+                MediaItem.Builder()
+                    .setUri(Uri.parse(station.bitrates[bitrateIndex].url))
+                    .build()
+            )
+            player.seekTo(position, 0)
+            player.prepare()
+            handler.postDelayed({
+                if (player.playbackState != ExoPlayer.STATE_READY) {
+                    handlePlayerError()
+                }
+            }, 5000)
+        } catch (e:Exception){}
     }
 
     @Throws(InterruptedException::class, IOException::class)
