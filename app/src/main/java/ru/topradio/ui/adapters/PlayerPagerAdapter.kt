@@ -2,22 +2,27 @@ package ru.topradio.ui.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.*
 import ru.topradio.R
 import ru.topradio.databinding.PlayerPagerItemBinding
 import ru.topradio.model.Station
 import com.bumptech.glide.Glide
-import com.google.android.gms.ads.*
+import com.yandex.mobile.ads.banner.AdSize
+import com.yandex.mobile.ads.banner.BannerAdEventListener
+import com.yandex.mobile.ads.common.AdRequest
+import com.yandex.mobile.ads.common.AdRequestError
+import com.yandex.mobile.ads.common.ImpressionData
+import ru.topradio.model.MainViewModel
 
 
 class PlayerPagerAdapter(private val context: Context, private val listener: OnClick,
-                         private val showAds: MutableLiveData<Boolean>,
-                         private val loadAds: MutableLiveData<Boolean>,
+                         private val viewModel: MainViewModel,
                          private val lifecycleOwner: LifecycleOwner)
     : ListAdapter<Station, PlayerPagerAdapter.StationViewHolder>(StationItemDiffCallback()),
     BitratesListAdapter.OnClickListener {
@@ -30,56 +35,24 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = PlayerPagerItemBinding.inflate(layoutInflater,parent,false)
 
-        binding.adsView.adListener = object: AdListener() {
-            override fun onAdFailedToLoad(p0: LoadAdError) {
-                super.onAdFailedToLoad(p0)
-//                holder.binding.adsView.loadAd(AdRequest.Builder().build())
-            }
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                if (loadAds.value!!) {
-                    binding.iconCardExpanded.visibility = View.INVISIBLE
-                    binding.adsBannerContainer.visibility = View.VISIBLE
-                }
-//                showAds.postValue(false)
-            }
-            override fun onAdClosed() {
-                super.onAdClosed()
-                loadAds.postValue(false)
-                binding.iconCardExpanded.visibility = View.VISIBLE
-                binding.adsBannerContainer.visibility = View.GONE
-            }
-            override fun onAdClicked() {
-                super.onAdClicked()
-                loadAds.postValue(false)
-                binding.iconCardExpanded.visibility = View.VISIBLE
-                binding.adsBannerContainer.visibility = View.GONE
-            }
-            override fun onAdOpened() {
-                super.onAdOpened()
-                loadAds.postValue(false)
-                binding.iconCardExpanded.visibility = View.VISIBLE
-                binding.adsBannerContainer.visibility = View.GONE
-            }
-        }
+        binding.adsView.setAdUnitId("R-M-1619868-2")
+        binding.adsView.setAdSize(AdSize.flexibleSize(250,250))
 
-        loadAds.observe(lifecycleOwner,{
-            it?.let{ loadAd ->
-                if (loadAd) {
-                    binding.adsView.loadAd(AdRequest.Builder().build())
-                } else {
-                    binding.iconCardExpanded.visibility = View.VISIBLE
-                    binding.adsBannerContainer.visibility = View.GONE
-                }
-            }
-        })
         return StationViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: StationViewHolder, position: Int,
+                                  payloads: MutableList<Any>) {
+        if (payloads.isEmpty())
+            super.onBindViewHolder(holder, position, payloads)
+        else holder.binding.trackNameExpanded.text = payloads[0].toString()
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: StationViewHolder, position: Int){
         val station = getItem(position)
         holder.binding.station = station
+
         holder.binding.trackNameExpanded.setOnClickListener {
             if (holder.binding.trackNameExpanded.text.isNotEmpty())
                 listener.onCopyClick(station.track)
@@ -98,10 +71,59 @@ class PlayerPagerAdapter(private val context: Context, private val listener: OnC
 
         holder.binding.executePendingBindings()
 
+        holder.binding.adsView.setBannerAdEventListener(object:BannerAdEventListener{
+            override fun onAdLoaded() {
+                if (viewModel.loadAds.value!!) {
+                    holder.binding.iconCardExpanded.visibility = View.INVISIBLE
+                    holder.binding.adsBannerContainer.visibility = View.VISIBLE
+                }
+            }
+
+            override fun onAdFailedToLoad(p0: AdRequestError) {
+                try {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        holder.binding.adsView.loadAd(AdRequest.Builder().build())
+                    }, 10000)
+                } catch (e:Exception){}
+            }
+
+            override fun onAdClicked() {
+                viewModel.loadAds.postValue(false)
+                holder.binding.iconCardExpanded.visibility = View.VISIBLE
+                holder.binding.adsBannerContainer.visibility = View.GONE
+            }
+
+            override fun onLeftApplication() {
+                viewModel.loadAds.postValue(false)
+                holder.binding.iconCardExpanded.visibility = View.VISIBLE
+                holder.binding.adsBannerContainer.visibility = View.GONE
+            }
+
+            override fun onReturnedToApplication() {
+
+            }
+
+            override fun onImpression(p0: ImpressionData?) {
+
+            }
+
+        })
+
+        viewModel.loadAds.observe(lifecycleOwner) {
+            it?.let { loadAd ->
+                if (loadAd) {
+                    holder.binding.adsView.loadAd(AdRequest.Builder().build())
+                } else {
+                    holder.binding.iconCardExpanded.visibility = View.VISIBLE
+                    holder.binding.adsBannerContainer.visibility = View.GONE
+                }
+            }
+        }
+
         holder.binding.adsClose.setOnClickListener {
             holder.binding.iconCardExpanded.visibility = View.VISIBLE
             holder.binding.adsBannerContainer.visibility = View.GONE
-            loadAds.postValue(false)
+            viewModel.loadAds.postValue(false)
         }
     }
 

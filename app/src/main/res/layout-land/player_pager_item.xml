@@ -96,16 +96,15 @@
             android:layout_marginTop="5dp"
             android:background="@color/back_main_container"
             app:cardElevation="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginStart="74dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="@id/iconCardExpanded"
+            app:layout_constraintEnd_toEndOf="@id/iconCardExpanded"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
-            <com.google.android.gms.ads.AdView
+            <com.yandex.mobile.ads.banner.BannerAdView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/adsView"
-                app:adSize="MEDIUM_RECTANGLE"
-                app:adUnitId="ca-app-pub-8287740228306736/4934049752"/>
+                android:id="@+id/adsView"/>
             <ImageView
                 android:id="@+id/adsClose"
                 android:layout_width="wrap_content"

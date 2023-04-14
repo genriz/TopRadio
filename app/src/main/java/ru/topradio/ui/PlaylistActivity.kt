@@ -68,21 +68,22 @@ class PlaylistActivity : AppCompatActivity(), PlayListAdapter.OnClick {
             }
         }
 
-        viewModel.playlist.observe(this,{
-            if (it!=null){
+        viewModel.playlist.observe(this) {
+            if (it != null) {
                 binding.adapter!!.submitList(it)
                 binding.progressPlaylist.visibility = View.GONE
             }
-        })
+        }
 
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             .format(Calendar.getInstance().timeInMillis)
 
         viewModel.getPlaylist(station.playList!!, date)
 
-        viewModel.state.observe(this,{
-            if (it!=null&&it== State.STATE_FAILED) binding.progressPlaylist.visibility = View.GONE
-        })
+        viewModel.state.observe(this) {
+            if (it != null && it == State.STATE_FAILED) binding.progressPlaylist.visibility =
+                View.GONE
+        }
     }
 
     override fun onCopyClick(text: String) {

@@ -1,5 +1,6 @@
 package ru.topradio.util
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
@@ -8,8 +9,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.media.AudioManager.*
-import android.media.MediaScannerConnection
-import android.media.MediaScannerConnection.OnScanCompletedListener
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
@@ -21,12 +20,12 @@ import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.DefaultLoadControl.*
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import kotlinx.coroutines.*
 import ru.topradio.R
 import ru.topradio.model.Alarm
@@ -67,6 +66,7 @@ class PlayerService: Service() {
             .build()
     }
 
+    @SuppressLint("WakelockTimeout")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getBundleExtra("bundle")?.let{
             station = it.getSerializable("station") as Station
@@ -80,9 +80,18 @@ class PlayerService: Service() {
                     }
                 alarm = it.getSerializable("alarm") as Alarm
                 checkAlarm()
+            } else {
+                wakeLock =
+                    (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+                        newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "PlayerService::lock").apply {
+                            acquire()
+                        }
+                    }
             }
             setStations()
         }
+
+        if (station.name=="") stopSelf()
 
         return START_STICKY
     }
@@ -123,6 +132,7 @@ class PlayerService: Service() {
                     player.clearMediaItems()
                     player.setMediaItems(items)
                     player.seekTo(AppData.stationsPlayer.indexOf(station), C.TIME_UNSET)
+                    player.playWhenReady = true
                     player.prepare()
                     handler.postDelayed({
                         if (player.playbackState != ExoPlayer.STATE_READY) {
@@ -143,16 +153,18 @@ class PlayerService: Service() {
                 bitrateIndex = station.bitrates.indexOf(br)
             }
         }
-        player.seekTo(position, C.TIME_UNSET)
-        handler.postDelayed({
-            if (player.playbackState != ExoPlayer.STATE_READY) {
-                handlePlayerError()
-            }
-        }, 20000)
-        if (!player.isPlaying) player.play()
+        player.seekTo(position, 0)
+        player.prepare()
+//        handler.postDelayed({
+//            if (player.playbackState != ExoPlayer.STATE_READY) {
+//                handlePlayerError()
+//            }
+//        }, 20000)
+        //player.play()
     }
 
     private fun setPlayer() {
+        player.setWakeMode(C.WAKE_MODE_NETWORK)
         bitrateIndex = 0
         station.bitrates.forEach { br ->
             if (br.isSelected) {
@@ -164,12 +176,14 @@ class PlayerService: Service() {
                 when (val md = metadata[n]) {
                     is com.google.android.exoplayer2.metadata.icy.IcyInfo -> {
                         val track = md.title?:""
-                        station.track = Html.fromHtml(track).toString()
-                        if (!fromAlarm)
-                        LocalBroadcastManager.getInstance(this@PlayerService)
-                            .sendBroadcast(Intent("player_track_name").apply {
-                                putExtra("track_name", station.track)
-                            })
+                        val trackString = Html.fromHtml(track).toString()
+                        if (station.track!=trackString) {
+                            station.track = trackString
+                            LocalBroadcastManager.getInstance(this@PlayerService)
+                                .sendBroadcast(Intent("player_track_name").apply {
+                                    putExtra("track_name", station.track)
+                                })
+                        }
                     }
                     else -> {
                         station.track = ""
@@ -181,6 +195,8 @@ class PlayerService: Service() {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 station.isPlaying = isPlaying
                 if (!isPlaying) {
+                    if (player.playbackState==Player.STATE_READY)
+//                        player.stop(false)
                     //stopped = true
                     //stopForeground(false)
                     if (station.isRecording) {
@@ -225,7 +241,20 @@ class PlayerService: Service() {
                     }
                 }, 5000)
             }
+
+            override fun onPlaybackSuppressionReasonChanged(playbackSuppressionReason: Int) {
+                if (playbackSuppressionReason==0) {
+                    player.stop()
+                }
+                if (playbackSuppressionReason==0) {
+                    player.stop()
+                    player.prepare()
+                    player.play()
+                }
+            }
         })
+
+
         playerNotificationManager = PlayerNotificationManager.Builder(this,
             1212, getString(R.string.app_name))
             .setMediaDescriptionAdapter(object:
@@ -234,14 +263,21 @@ class PlayerService: Service() {
                     return station.name
                 }
 
+                @SuppressLint("UnspecifiedImmutableFlag")
                 override fun createCurrentContentIntent(player: Player): PendingIntent? {
                     val intent1 = Intent(this@PlayerService, MainActivity::class.java)
 //                    val serviceBundle = Bundle()
 //                    serviceBundle.putSerializable("station", station)
 //                    intent1.putExtra("bundle", serviceBundle)
-                    return PendingIntent.getActivity(
-                        applicationContext, 0,
-                        intent1, 0)
+                    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        PendingIntent.getActivity(
+                            applicationContext, 0,
+                            intent1, PendingIntent.FLAG_IMMUTABLE)
+                    } else {
+                        PendingIntent.getActivity(
+                            applicationContext, 0,
+                            intent1, PendingIntent.FLAG_UPDATE_CURRENT)
+                    }
                 }
 
                 override fun getCurrentContentText(player: Player): CharSequence {
@@ -256,7 +292,8 @@ class PlayerService: Service() {
                 }
 
             })
-            .setNotificationListener(object:PlayerNotificationManager.NotificationListener{
+            .setNotificationListener(object:PlayerNotificationManager.NotificationListener,
+                com.google.android.exoplayer2.ui.PlayerNotificationManager.NotificationListener {
                 override fun onNotificationCancelled(
                     notificationId: Int,
                     dismissedByUser: Boolean) {
@@ -294,7 +331,7 @@ class PlayerService: Service() {
             .setContentType(C.CONTENT_TYPE_MUSIC)
             .build()
         player.setAudioAttributes(audioAttr, true)
-        player.playWhenReady = true
+
         if (station.bitrates.size>0) {
 //            player.setMediaItem(
 //                MediaItem.Builder()
@@ -407,9 +444,12 @@ class PlayerService: Service() {
     }
 
     private fun loadBitmap(url: String, callback: PlayerNotificationManager.BitmapCallback?) {
+        val glideUrl = GlideUrl("https://top-radio.ru/assets/image/radio/180/$url") {
+            mapOf(Pair("x-top-radio-app", "trust"))
+        }
         Glide.with(this)
             .asBitmap()
-            .load("https://top-radio.ru/assets/image/radio/180/$url")
+            .load(glideUrl)
             .into(object : CustomTarget<Bitmap>() {
                 override fun onResourceReady(
                     resource: Bitmap,
@@ -577,6 +617,10 @@ class PlayerService: Service() {
         station = Station()
         playerNotificationManager?.setPlayer(null)
         stopForeground(true)
+        wakeLock?.let{
+            try {if (it.isHeld) it.release()}
+            catch (e:Exception){}
+        }
         stopSelf()
     }
 
@@ -587,10 +631,12 @@ class PlayerService: Service() {
                 FLAG_PLAY_SOUND)
         }
         handler.removeCallbacksAndMessages(null)
-        AppData.stationsPlayer.clear()
-        station = Station()
-        alarm = Alarm()
-        fromAlarm = false
+        //AppData.stationsPlayer.clear()
+        //station = Station()
+        //alarm = Alarm()
+        //fromAlarm = false
+        Log.v("DASD", "destroy")
         super.onDestroy()
     }
+
 }

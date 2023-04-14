@@ -22,11 +22,6 @@ object AppData {
     val cities = ArrayList<City>()
     val genres = ArrayList<Genre>()
     var favorites = HashSet<String>()
-    val bufferSizes = ArrayList<Int>().apply {
-        add(500)
-        add(5000)
-        add(15000)
-    }
     val calDays = ArrayList<Int>().apply {
         addAll(arrayOf(
             Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY,
@@ -52,14 +47,6 @@ object AppData {
         } else Station()
     }
 
-    fun getPositionById(id: Int): Int {
-        var position = 0
-        stations.forEach {
-            if (it.id == id) position = stations.indexOf(it)
-        }
-        return position
-    }
-
     fun getRepeatDays(context: Context): HashSet<String>{
         val repeatDays = HashSet<String>()
         repeatDays.addAll(context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
@@ -72,7 +59,7 @@ object AppData {
     }
 
     fun getSettingBoolean(context: Context, setting: String):Boolean{
-        return if (setting=="headphone"){
+        return if (setting=="headphone"||setting=="autoplay"){
             context.getSharedPreferences("prefs", Activity.MODE_PRIVATE)
                 .getBoolean(setting, true)
         } else {

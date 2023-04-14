@@ -17,32 +17,14 @@ import kotlin.collections.ArrayList
 class MainViewModel: ViewModel() {
     private val stationsApi = MutableLiveData<ArrayList<Station>>()
     val stations: LiveData<ArrayList<Station>> = stationsApi
-    private val stationsFavoritesApp = MutableLiveData<ArrayList<Station>>()
-    val stationsFavorites: LiveData<ArrayList<Station>> = stationsFavoritesApp
     val station = MutableLiveData<Station>().apply { value = Station() }
     val stationPager = MutableLiveData<Station>().apply { value = Station() }
     private var job: Job? = null
     private val genresApi = MutableLiveData<ArrayList<Genre>>().apply {
-        AppData.genres.forEach { genre ->
-            var count = 0
-            AppData.stations.forEach { station ->
-                if (station.genres.contains(genre.id)) count++
-            }
-            genre.count = count
-        }
-        AppData.genres.sortByDescending { it.count }
         value = AppData.genres
     }
     val genres: LiveData<ArrayList<Genre>> = genresApi
     private val citiesApi = MutableLiveData<ArrayList<City>>().apply {
-        AppData.cities.forEach { city ->
-            var count = 0
-            AppData.stations.forEach { station ->
-                if (station.cities.contains(city.id)) count++
-            }
-            city.count = count
-        }
-        AppData.cities.sortByDescending { it.count }
         value = AppData.cities
     }
     val cities: LiveData<ArrayList<City>> = citiesApi
@@ -56,7 +38,6 @@ class MainViewModel: ViewModel() {
     val viewTypeValue = MutableLiveData<String>()
     private val viewedStations = ArrayList<Station>()
     val state = MutableLiveData<State>().apply { value = State.STATE_OK }
-    val showAds = MutableLiveData<Boolean>().apply { value = false }
     val loadAds = MutableLiveData<Boolean>().apply { value = false }
 
     fun getAllStations(){
@@ -110,18 +91,6 @@ class MainViewModel: ViewModel() {
             array.forEach {station_ ->
                 if (station_.id == station.id) {
                     position = array.indexOf(station_)
-                }
-            }
-            position
-        } else 0
-    }
-
-    fun getStationFavoritesPosition(station: Station): Int{
-        return if (stationsFavorites.value!=null){
-            var position = 0
-            stationsFavorites.value?.forEach {station_ ->
-                if (station_.id == station.id) {
-                    position = stationsFavorites.value!!.indexOf(station_)
                 }
             }
             position

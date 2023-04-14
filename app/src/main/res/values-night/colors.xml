@@ -27,4 +27,5 @@
     <color name="play_waiting">#FFFFFF</color>
     <color name="top_menu_back">@color/back_main</color>
     <color name="setting_subtitle">#B3BACE</color>
+    <color name="ads_title">@color/white</color>
 </resources>

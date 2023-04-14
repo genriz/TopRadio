@@ -2,7 +2,6 @@ package ru.topradio.ui
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
@@ -54,9 +53,9 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         (activity as MainActivity).hideKeyboard()
 
-        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
-            if (it!=null){
-                if (binding.adapter is StationsListAdapter){
+        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner) {
+            if (it != null) {
+                if (binding.adapter is StationsListAdapter) {
                     var adsPos = 0
                     val stationsWithAds = ArrayList<Station>()
                     it.forEach { station ->
@@ -79,13 +78,13 @@ class HomeFragment: Fragment(), StationsListAdapter.OnClickListener,
 //                }
 
             }
-        })
+        }
 
-        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
-            it?.let{ position ->
-                binding.adapter!!.notifyItemChanged(position+(position/19)+1)
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner) {
+            it?.let { position ->
+                binding.adapter!!.notifyItemChanged(position + (position / 19) + 1)
             }
-        })
+        }
 
         (activity as MainActivity).viewModel.getAllStations()
 

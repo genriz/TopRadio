@@ -50,20 +50,20 @@ class ViewedFragment: Fragment(),
 
         setHasOptionsMenu(true)
 
-        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
-            if (it!=null){
+        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner) {
+            if (it != null) {
                 binding.adapter!!.submitList(ArrayList<Station>())
-                if (it.size>50)
+                if (it.size > 50)
                     binding.adapter!!.submitList(it.subList(0, 49))
                 else binding.adapter!!.submitList(it)
             }
-        })
+        }
 
-        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
-            it?.let{ position ->
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner) {
+            it?.let { position ->
                 binding.adapter!!.notifyItemChanged(position)
             }
-        })
+        }
 
         (activity as MainActivity).viewModel.getViewedStations(requireContext())
     }

@@ -1,16 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <com.google.android.ads.nativetemplates.TemplateView
+        <com.yandex.mobile.ads.nativeads.NativeAdView
             android:id="@+id/adView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintDimensionRatio="H,5:1"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:gnt_template_type="@layout/gnt_small_template_view"/>
+            app:layout_constraintTop_toTopOf="parent">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <com.yandex.mobile.ads.nativeads.MediaView
+                    app:layout_constraintTop_toTopOf="@id/adsTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="@id/adsBody"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginStart="8dp"
+                    android:id="@+id/adsMedia"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    app:layout_constraintDimensionRatio="1:1"
+                    tools:ignore="ContentDescription"
+                    android:layout_marginBottom="0dp"/>
+                <TextView
+                    android:layout_width="0dp"
+                    app:layout_constraintStart_toEndOf="@id/adsMedia"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginStart="8dp"
+                    android:textSize="16sp"
+                    android:textColor="@color/ads_title"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginTop="8dp"
+                    android:id="@+id/adsTitle"/>
+                <TextView
+                    android:layout_width="0dp"
+                    app:layout_constraintStart_toEndOf="@id/adsMedia"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="12dp"
+                    android:textSize="14sp"
+                    android:layout_marginStart="8dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/adsTitle"
+                    android:id="@+id/adsBody"/>
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/adsBody"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:layout_marginEnd="8dp"
+                    android:textSize="10sp"
+                    android:id="@+id/adsSponsored"
+                    tools:ignore="SmallSp"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.yandex.mobile.ads.nativeads.NativeAdView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

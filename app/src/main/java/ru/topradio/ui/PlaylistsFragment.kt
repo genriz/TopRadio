@@ -66,12 +66,12 @@ class PlaylistsFragment: Fragment(), PlayListAdapter.OnClick {
             }
         }
 
-        (activity as MainActivity).viewModel.playlist.observe(viewLifecycleOwner,{
-            if (it!=null){
+        (activity as MainActivity).viewModel.playlist.observe(viewLifecycleOwner) {
+            if (it != null) {
                 binding.adapter!!.submitList(it)
                 binding.progressPlaylist.visibility = View.GONE
             }
-        })
+        }
 
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             .format(Calendar.getInstance().timeInMillis)
@@ -79,9 +79,10 @@ class PlaylistsFragment: Fragment(), PlayListAdapter.OnClick {
             .getPlaylist((activity as MainActivity).viewModel.stationPager.value!!.playList!!,
                 date)
 
-        (activity as MainActivity).viewModel.state.observe(viewLifecycleOwner,{
-            if (it!=null&&it== State.STATE_FAILED) binding.progressPlaylist.visibility = View.GONE
-        })
+        (activity as MainActivity).viewModel.state.observe(viewLifecycleOwner) {
+            if (it != null && it == State.STATE_FAILED) binding.progressPlaylist.visibility =
+                View.GONE
+        }
     }
 
 //    override fun onDetach() {

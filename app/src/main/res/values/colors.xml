@@ -29,4 +29,5 @@
     <color name="setting_subtitle">#B3BACE</color>
     <color name="switch_on">#3CDC86</color>
     <color name="switch_off">#B3BACE</color>
+    <color name="ads_title">@color/black</color>
 </resources>

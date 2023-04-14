@@ -15,6 +15,7 @@ import ru.topradio.ui.adapters.CitiesListAdapter
 import ru.topradio.ui.adapters.GenresListAdapter
 import ru.topradio.ui.adapters.StationsListAdapter
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,7 +50,12 @@ fun RecyclerView.setAdapterBitrates(adapter: RecyclerView.Adapter<*>) {
 @BindingAdapter("setIcon")
 fun setIcon (view: ImageView, path: String?){
     path?.let{
-        Glide.with(view).load("https://top-radio.ru/assets/image/radio/180/$it").into(view)
+        val glideUrl = GlideUrl("https://top-radio.ru/assets/image/radio/180/$it") {
+            mapOf(Pair("x-top-radio-app", "trust"))
+        }
+        Glide.with(view)
+            .load(glideUrl)
+            .into(view)
     }
 }
 
@@ -135,7 +141,7 @@ fun setTimerText (view: TextView, timer: Int){
 @BindingAdapter("setPlaylistInfo")
 fun setPlaylistInfo (view: TextView, playlistItem: PlaylistItem){
     if (playlistItem.start_at!="") {
-        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         sdf.timeZone = TimeZone.getTimeZone("GMT")
         val timeLong = sdf.parse(playlistItem.start_at)!!
         val sdfTime = SimpleDateFormat("HH:mm", Locale.getDefault())

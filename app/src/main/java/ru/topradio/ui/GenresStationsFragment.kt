@@ -56,10 +56,10 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
         (activity as MainActivity).supportActionBar!!.title = genreName
         (activity as MainActivity).supportActionBar!!.setIcon(null)
 
-        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
-            if (it!=null){
+        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner) {
+            if (it != null) {
                 binding.adapter!!.submitList(ArrayList<Station>())
-                if (binding.adapter is StationsListAdapter){
+                if (binding.adapter is StationsListAdapter) {
                     var adsPos = 0
                     val stationsWithAds = ArrayList<Station>()
                     it.forEach { station ->
@@ -80,13 +80,13 @@ class GenresStationsFragment: Fragment(), StationsListAdapter.OnClickListener,
 //                    (activity as MainActivity).scrollToFirst = false
 //                }
             }
-        })
+        }
 
-        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
-            it?.let{ position ->
-                binding.adapter!!.notifyItemChanged(position+(position/19)+1)
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner) {
+            it?.let { position ->
+                binding.adapter!!.notifyItemChanged(position + (position / 19) + 1)
             }
-        })
+        }
 
         (activity as MainActivity).viewModel.getGenreStations(genreId)
 

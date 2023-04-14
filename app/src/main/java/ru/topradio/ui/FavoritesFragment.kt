@@ -50,22 +50,18 @@ class FavoritesFragment: Fragment(), StationsListAdapter.OnClickListener,
 
         setHasOptionsMenu(true)
 
-        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner,{
-            if (it!=null){
+        (activity as MainActivity).viewModel.stations.observe(viewLifecycleOwner) {
+            if (it != null) {
                 binding.adapter!!.submitList(ArrayList<Station>())
-//                if ((activity as MainActivity).scrollToFirst) {
-//                    (activity as MainActivity).scrollToFirst = false
-//                }
                 binding.adapter!!.submitList(it)
             }
-        })
+        }
 
-        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner,{
-            it?.let{ position ->
-                //binding.adapter!!.notifyItemChanged(position)
+        (activity as MainActivity).viewModel.updateItemPosition.observe(viewLifecycleOwner) {
+            it?.let { _ ->
                 (activity as MainActivity).viewModel.getFavoriteStations()
             }
-        })
+        }
 
         (activity as MainActivity).viewModel.getFavoriteStations()
 
